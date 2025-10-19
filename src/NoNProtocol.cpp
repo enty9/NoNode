@@ -71,15 +71,26 @@ namespace TNonProto {
 
 int main() {
   NonDHT ndht;
+  FileDetector detector;
 
   ndht.Connect();
-  ndht.SendInfo("LOH", TNonProto::Generate_Uuid());
-  ndht.SendInfo("LOH", TNonProto::Generate_Uuid());
-  vector<string> data = ndht.GetData("LOH");
+  vector<uint8_t> file = ndht.ReadFile("/home/zeroking/fon.png");
+  string gen = TNonProto::Generate_Uuid();
+  vector<uint8_t> uuid(gen.begin(), gen.end());
+  ndht.SendInfo("LOH", uuid);
+  ndht.SendInfo("LOH", file);
+  vector<vector<uint8_t>> data = ndht.GetData("LOH");
+  string result;
 
-  for (string d : data) {
-    cout << d << endl;
+  for (auto &d : data) {
+    if (detector.isfile(d)) {
+      cout << "Is File" << endl;
+    } else {
+      result.assign(d.begin(), d.end());
+      cout << result << endl;
+    }
   }
+  
   while (true) {
     this_thread::sleep_for(chrono::seconds(60));
   }
