@@ -3,7 +3,12 @@
 
 #include <iostream>
 #include <cstdint>
+#include <memory>
 #include <opendht.h>
+#include <opendht/crypto.h>
+#include <opendht/infohash.h>
+#include <string>
+#include <sys/types.h>
 #include <vector>
 
 using namespace std;
@@ -23,6 +28,7 @@ class FileDetector {
     };
     string detect(const vector<uint8_t> &data);
     bool isfile(const vector<uint8_t> &data);
+    void saveFile(const string &path, const vector<uint8_t> &data);
 
   private:
     std::map<std::string, Filesignature> signatures;
@@ -32,6 +38,10 @@ class NonDHT {
     public:
       void Connect();
       void SendInfo(string key, vector<uint8_t> data);
+      void SendSigInfo(string uuid, vector<uint8_t> data);
+      void SendEncInfo(string key, vector<uint8_t> data, string pass);
+      vector<vector<uint8_t>> GetEncInfo(string key, string pass);
+      dht::crypto::Identity GetCreatyIndentity(const string& path);
       vector<vector<uint8_t>> GetData(string key);
       vector<uint8_t> ReadFile(const string &path);
       void Close();

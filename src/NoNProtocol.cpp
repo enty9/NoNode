@@ -1,7 +1,8 @@
+#include <array>
 #include <boost/asio.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <chrono>
-#include <codecvt>
+#include <memory>
 #include <openssl/aes.h>
 #include <iostream>
 #include "vector"
@@ -17,6 +18,8 @@
 #include <opendht.h>
 #include <thread>
 #include <vector>
+#include <memory.h>
+#include <cstdio>
 
 using boost::asio::ip::udp;
 using namespace std;
@@ -69,17 +72,34 @@ namespace TNonProto {
     }; 
 };
 
+string terminal(const char *cmd) {
+  array<char, 128> buffer;
+  string data;
+
+  unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    data += buffer.data();
+  }
+
+  return data;
+}
+
 int main() {
   NonDHT ndht;
   FileDetector detector;
+  string res = terminal("./stunclient stun.internetcalls.com 3478");
+
+  size_t pos = res.find("Mapped address:");
+  res = res.substr(pos + 16);
+
+  vector<uint8_t> d (res.begin(), res.end());
 
   ndht.Connect();
-  vector<uint8_t> file = ndht.ReadFile("/home/zeroking/fon.png");
   string gen = TNonProto::Generate_Uuid();
   vector<uint8_t> uuid(gen.begin(), gen.end());
-  ndht.SendInfo("LOH", uuid);
-  ndht.SendInfo("LOH", file);
-  vector<vector<uint8_t>> data = ndht.GetData("LOH");
+  ndht.SendEncInfo(gen, d, "Hello");
+  vector<vector<uint8_t>> data = ndht.GetEncInfo(gen, "Hell");
+
   string result;
 
   for (auto &d : data) {
@@ -87,10 +107,10 @@ int main() {
       cout << "Is File" << endl;
     } else {
       result.assign(d.begin(), d.end());
-      cout << result << endl;
+      cout << result;
     }
   }
-  
+
   while (true) {
     this_thread::sleep_for(chrono::seconds(60));
   }
