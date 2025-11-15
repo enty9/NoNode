@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <boost/asio.hpp>
 
 using namespace std;
 
@@ -48,6 +49,9 @@ vector<vector<uint8_t>> NonDHT::GetData(string key) {
 
   auto results = future.get();
   return results;
+}
+string NonDHT::Generator(string id, bool isgenerate) {
+  
 }
 dht::crypto::Identity NonDHT::GetCreatyIndentity(const string& path){
   if (filesystem::exists(path)) {

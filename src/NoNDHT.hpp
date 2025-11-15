@@ -44,6 +44,7 @@ class NonDHT {
       dht::crypto::Identity GetCreatyIndentity(const string& path);
       vector<vector<uint8_t>> GetData(string key);
       vector<uint8_t> ReadFile(const string &path);
+      string Generator(string id, bool isgenerate);
       void Close();
 
     private:

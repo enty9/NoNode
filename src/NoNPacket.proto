@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package network;
+
+enum Types{
+    UNSPECIFIED = 0;
+    TEXT = 1;
+    AUDIO = 2;
+    VIDEO = 3;
+    IMAGE = 4;
+    FILLE = 5;
+}
+
+message Packet {
+    bytes data = 1;
+    string time = 2;
+    Types type = 3;
+    repeated float values = 4;
+}

@@ -6,14 +6,45 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>762</width>
-    <height>598</height>
+    <width>907</width>
+    <height>625</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>NoNWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">*{
+	background-color: #0d0d12;
+	color: #f0f0f8;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	height: 100vh;
+	display: flex;
+}</string>
+   </property>
+   <widget class="QWidget" name="LeftWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>101</width>
+      <height>621</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">*{
+	background-color: #14141a;
+	width: 72px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 16px 0;
+	border-right: 1px solid #24242e;
+}</string>
+    </property>
+   </widget>
+  </widget>
  </widget>
  <resources/>
  <connections/>

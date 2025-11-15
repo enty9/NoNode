@@ -1,11 +1,16 @@
+#include <boost/asio.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <opendht.h>
 #include <opendht/infohash.h>
 #include <opendht/utils.h>
+#include <string>
 #include <thread>
-#include <vector>
 
 using namespace std;
 
@@ -16,8 +21,14 @@ int main() {
   auto identity = dht::crypto::generateIdentity();
   string data = "Hellos";
   node.run(port, identity, true);
+  static boost::uuids::random_generator en;
+  static boost::uuids::uuid key = en();
 
-  cout << dht::InfoHash::get(data) << endl;
+  string ey = to_string(key);
+
+  cout << node.getId() << endl;
+  cout << ey << endl;
+
   cout << "Start open input on 8888 port" << endl;
   while (true) {
     this_thread::sleep_for(chrono::seconds(30));

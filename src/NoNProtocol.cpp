@@ -1,76 +1,173 @@
 #include <array>
 #include <boost/asio.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <chrono>
-#include <memory>
-#include <openssl/aes.h>
-#include <iostream>
-#include "vector"
-#include "cstdint"
-#include "cstring"
+#include <boost/iostreams/categories.hpp>
+#include <boost/system/detail/error_code.hpp>
 #include <cstddef>
 #include <cstdint>
-#include <string>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include "NoNDHT.hpp"
-#include <opendht.h>
-#include <thread>
+#include <cstring>
+#include <exception>
+#include <fstream>
+#include <future>
+#include <google/protobuf/message.h>
+#include <memory>
+#include <mutex>
+#include <netinet/in.h>
+#include <openssl/aes.h>
+#include <iostream>
+#include <optional>
+#include <sstream>
+#include <utility>
 #include <vector>
-#include <memory.h>
+#include <string>
+#include <opendht.h>
 #include <cstdio>
+#include "NoNProtocol.hpp"
+#include "NoNPacket.pb.h"
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/copy.hpp>
 
 using boost::asio::ip::udp;
 using namespace std;
 
 boost::asio::io_context io;
 
-struct Packet {
-  uint8_t version;
-  uint32_t length;
-  uint8_t type;
-  string payload;
+void TNonProto::add_pear(string &host, string &port) {
+  udp::resolver res(io);
+  auto end = res.resolve(udp::v4(), host, port);
+  for (const auto &e : end) {
+    peers.push_back(e);
+  }
+}
 
-  enum Type : uint8_t {
-    MSG = 1,
-    JOIN = 2,
-    KICK = 3,
-    PING = 4
-  };
+void TNonProto::send_to_all(network::Packet meesage) {
+  for (const auto &peer : peers) {
+    send_message(meesage, peer);
+  }
+}
 
-  vector<uint8_t> serialize() const {
-    vector<uint8_t> buffer(6 + payload.size());
-    uint32_t net_length = htonl(1 + payload.size());
-    memcpy(buffer.data(), &net_length, 4);
-    buffer[4] = type;
-    memcpy(buffer.data() + 6, payload.data(), payload.size());
-    return buffer;
+void TNonProto::send_to_peer(network::Packet meesage, string host, string port) {
+  udp::resolver resolver(io);
+  auto end = resolver.resolve(udp::v4(), host, port);
+  for (const auto &e : end) {
+    send_message(meesage, e);
+  }
+}
+
+vector<string> TNonProto::list_peers() {
+  string data;
+  vector<string> datas;
+  for (size_t i = 0; i < peers.size(); ++i) {
+    data = peers[i].address().to_string() + ":" + to_string(peers[i].port());
+    datas.push_back(data);
   }
 
-  static Packet parse(const uint8_t *data, size_t size) {
-    Packet pkt;
-    uint32_t net_length;
-    memcpy(&net_length, data, 4);
-    pkt.version = 1;
-    pkt.length = ntohl(net_length);
-    pkt.type = data[4];
-    pkt.payload.assign(reinterpret_cast<const char *>(data + 5),
-                       pkt.length - 1);
-    return pkt;
-  }
-};
+  return datas;
+}
 
-namespace TNonProto {
-    void Send() {
-        udp::socket socket(io);
+void TNonProto::start_receive() {
+  sock.async_receive_from(
+      boost::asio::buffer(buffer),
+      remot_end,
+      [this](boost::system::error_code ec, size_t bytes){
+        if(!ec && bytes > 0 && is_running){
+          receivePacket(bytes);
+          if (!has_peer(remot_end)) {
+            peers.push_back(remot_end);
+          }
+        }
+        if (is_running) {
+          start_receive();
+        }
+      }
+  );
+}
+
+void TNonProto::receivePacket(size_t bytes) {
+  try {
+    network::Packet pack;
+    vector<char> data(buffer.data(), buffer.data() + bytes);
+
+    if (TPacketSerializer::deserialize(data, pack)) {
+      lock_guard<mutex> lock(data_mutex);
+      return_packet.push_back(pack);
     }
-    string Generate_Uuid() {
-      static boost::uuids::random_generator gen;
-      boost::uuids::uuid key = gen();
-      return to_string(key);
-    }; 
-};
+
+    condition.notify_one();
+
+    if (pack_handl) {
+      pack_handl(pack);
+    }
+
+    cout << "Data: " << pack.data() << endl;
+  } catch (exception e) {
+    cerr << "Error:" << e.what() << endl;
+  }
+}
+
+
+void TNonProto::send_message(network::Packet message, udp::endpoint end) {
+  auto buf = make_shared<vector<char>>(TPacketSerializer::serialize(message));
+  sock.async_send_to(
+      boost::asio::buffer(*buf),
+      end,
+      [this, message, end](boost::system::error_code ec, size_t){
+        if (!ec) {
+          cout << "Sended" << endl;
+        } else {
+          cerr << "Send Error" << ec.message() << endl;
+        }
+      }
+  );
+}
+
+bool TNonProto::has_peer(udp::endpoint end) {
+  for (const auto &peer : peers) {
+    if (peer.address() == end.address() && peer.port() == end.port()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+optional<network::Packet> TNonProto::getData() {
+  lock_guard<mutex> lock(data_mutex);
+
+  if (!return_packet.empty()) {
+    auto pack = return_packet.front();
+    return_packet.pop_front();
+    return pack;
+  }
+
+  return nullopt;
+}
+
+vector<char> TPacketSerializer::serialize(const google::protobuf::Message &message) {
+  string serialized = message.SerializeAsString();
+  vector<char> buff(sizeof(uint32_t) + serialized.size());
+  uint32_t size = htonl(static_cast<uint32_t>(serialized.size()));
+  memcpy(buff.data(), &size, sizeof(uint32_t));
+  memcpy(buff.data() + sizeof(uint32_t), serialized.data(), serialized.size());
+
+  return buff;
+}
+
+bool TPacketSerializer::deserialize(const vector<char> &buffer, google::protobuf::Message &message){
+  if (buffer.size() < sizeof(uint32_t)) {
+    return false;
+  }
+
+  uint32_t size;
+  memcpy(&size, buffer.data(), sizeof(uint32_t));
+  size = ntohl(size);
+
+  if (buffer.size() != sizeof(uint32_t) + size) {
+    return false;
+  }
+
+  return message.ParseFromArray(buffer.data() + sizeof(uint32_t), size);
+}
+
 
 string terminal(const char *cmd) {
   array<char, 128> buffer;
@@ -82,37 +179,4 @@ string terminal(const char *cmd) {
   }
 
   return data;
-}
-
-int main() {
-  NonDHT ndht;
-  FileDetector detector;
-  string res = terminal("./stunclient stun.internetcalls.com 3478");
-
-  size_t pos = res.find("Mapped address:");
-  res = res.substr(pos + 16);
-
-  vector<uint8_t> d (res.begin(), res.end());
-
-  ndht.Connect();
-  string gen = TNonProto::Generate_Uuid();
-  vector<uint8_t> uuid(gen.begin(), gen.end());
-  ndht.SendEncInfo(gen, d, "Hello");
-  vector<vector<uint8_t>> data = ndht.GetEncInfo(gen, "Hell");
-
-  string result;
-
-  for (auto &d : data) {
-    if (detector.isfile(d)) {
-      cout << "Is File" << endl;
-    } else {
-      result.assign(d.begin(), d.end());
-      cout << result;
-    }
-  }
-
-  while (true) {
-    this_thread::sleep_for(chrono::seconds(60));
-  }
-  ndht.Close();
 }
