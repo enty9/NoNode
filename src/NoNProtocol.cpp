@@ -7,7 +7,6 @@
 #include <cstring>
 #include <exception>
 #include <fstream>
-#include <future>
 #include <google/protobuf/message.h>
 #include <memory>
 #include <mutex>
@@ -15,8 +14,6 @@
 #include <openssl/aes.h>
 #include <iostream>
 #include <optional>
-#include <sstream>
-#include <utility>
 #include <vector>
 #include <string>
 #include <opendht.h>
@@ -99,7 +96,7 @@ void TNonProto::receivePacket(size_t bytes) {
       pack_handl(pack);
     }
 
-    cout << "Data: " << pack.data() << endl;
+    cout << "Data: " << return_packet.front().data() << endl;
   } catch (exception e) {
     cerr << "Error:" << e.what() << endl;
   }
@@ -180,3 +177,31 @@ string terminal(const char *cmd) {
 
   return data;
 }
+
+Peer TNonProto::getpublicaddres() {
+  Peer addres;
+  ifstream file("./STUNLIST.txt");
+  string lines;
+
+  while (getline(file, lines)) {
+    size_t fin = lines.find(':');
+    string ip = lines.substr(0, fin);
+    string port = lines.substr(fin + 1, -1);
+
+    string com = "./stunclient " + ip + " " + port;
+    string retur = terminal(com.c_str());
+    size_t st = retur.find(":");
+    if (retur.substr(st + 2, 7) == "success") {
+      string addr = retur.substr(retur.find('M') + 16, -1);
+      string ip = addr.substr(0, addr.find(':'));
+      string port = addr.substr(addr.find(':') + 1, -1);
+
+      addres.public_ip = ip;
+      addres.public_port = stoi(port);
+                           
+      break;
+    }
+  }
+
+  return addres;
+};

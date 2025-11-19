@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   boost::asio::io_context io;
   TNonProto proto(io, port);
 
-  thread io_thread([&io] {
+  thread io_thread([&io, &proto] {
     try {
       io.run();
     } catch (exception e){

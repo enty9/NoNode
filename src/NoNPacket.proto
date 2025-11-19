@@ -17,3 +17,7 @@ message Packet {
     Types type = 3;
     repeated float values = 4;
 }
+
+message PUNCH{
+    bytes data = 1;
+}

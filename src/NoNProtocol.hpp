@@ -16,6 +16,11 @@
 using namespace std;
 using boost::asio::ip::udp;
 
+struct Peer {
+  string public_ip;
+  short public_port;
+};
+
 class TPacketSerializer {
 public:
   static vector<char> serialize(const google::protobuf::Message &message);
@@ -46,7 +51,8 @@ class TNonProto {
       void setPacketHandler(PacketHandler handler) {
         pack_handl = handler;
       }
- 
+      Peer getpublicaddres();
+      
     private:
       boost::asio::io_context &io_context;
       udp::socket sock;
