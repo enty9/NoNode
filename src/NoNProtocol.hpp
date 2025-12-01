@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <google/protobuf/message.h>
 #include <iostream>
 #include <boost/asio.hpp>
@@ -29,11 +30,10 @@ public:
 
 class TNonProto {
     public:
-      using PacketHandler = function<void(const network::Packet &)>;
-      TNonProto(boost::asio::io_context &io, short port)
+      TNonProto(boost::asio::io_context &io, short port, deque<network::Packet> &packet)
           : io_context(io), sock(io, udp::endpoint(udp::v4(), port)),
             is_running(true) {
-            start_receive();
+            start_receive(packet);
       }
       ~TNonProto() {
         is_running = false;
@@ -43,14 +43,9 @@ class TNonProto {
       void send_to_all(network::Packet message);
       void send_to_peer(network::Packet meesage, string host, string port);
       vector<string> list_peers();
-      void start_receive();
+      void start_receive(deque<network::Packet> &packet);
       void send_message(network::Packet message, udp::endpoint end);
       bool has_peer(const udp::endpoint end);
-      void receivePacket(size_t bytes);
-      optional<network::Packet> getData();
-      void setPacketHandler(PacketHandler handler) {
-        pack_handl = handler;
-      }
       Peer getpublicaddres();
       
     private:
@@ -61,11 +56,6 @@ class TNonProto {
       array<char, 66563> buffer;
       vector<udp::endpoint> peers;
       udp::endpoint remot_end;
-
-      deque<network::Packet> return_packet;
-      mutex data_mutex;
-      PacketHandler pack_handl;
-      condition_variable condition;
 };
 
 string terminal(const char *cmd);

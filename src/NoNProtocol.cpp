@@ -62,46 +62,28 @@ vector<string> TNonProto::list_peers() {
   return datas;
 }
 
-void TNonProto::start_receive() {
+void TNonProto::start_receive(deque<network::Packet> &packet) {
   sock.async_receive_from(
       boost::asio::buffer(buffer),
       remot_end,
-      [this](boost::system::error_code ec, size_t bytes){
+      [this, &packet](boost::system::error_code ec, size_t bytes){
         if(!ec && bytes > 0 && is_running){
-          receivePacket(bytes);
+          network::Packet pack;
+          vector<char> data(buffer.data(), buffer.data() + bytes);
+          if (TPacketSerializer::deserialize(data, pack)) {
+            packet.push_back(pack);
+          }
+          cout << "Data: " << packet.front().data() << endl;
           if (!has_peer(remot_end)) {
             peers.push_back(remot_end);
           }
         }
         if (is_running) {
-          start_receive();
+          start_receive(packet);
         }
       }
   );
 }
-
-void TNonProto::receivePacket(size_t bytes) {
-  try {
-    network::Packet pack;
-    vector<char> data(buffer.data(), buffer.data() + bytes);
-
-    if (TPacketSerializer::deserialize(data, pack)) {
-      lock_guard<mutex> lock(data_mutex);
-      return_packet.push_back(pack);
-    }
-
-    condition.notify_one();
-
-    if (pack_handl) {
-      pack_handl(pack);
-    }
-
-    cout << "Data: " << return_packet.front().data() << endl;
-  } catch (exception e) {
-    cerr << "Error:" << e.what() << endl;
-  }
-}
-
 
 void TNonProto::send_message(network::Packet message, udp::endpoint end) {
   auto buf = make_shared<vector<char>>(TPacketSerializer::serialize(message));
@@ -125,18 +107,6 @@ bool TNonProto::has_peer(udp::endpoint end) {
     }
   }
   return false;
-}
-
-optional<network::Packet> TNonProto::getData() {
-  lock_guard<mutex> lock(data_mutex);
-
-  if (!return_packet.empty()) {
-    auto pack = return_packet.front();
-    return_packet.pop_front();
-    return pack;
-  }
-
-  return nullopt;
 }
 
 vector<char> TPacketSerializer::serialize(const google::protobuf::Message &message) {
