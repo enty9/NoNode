@@ -73,7 +73,6 @@ void TNonProto::start_receive(deque<network::Packet> &packet) {
           if (TPacketSerializer::deserialize(data, pack)) {
             packet.push_back(pack);
           }
-          cout << "Data: " << packet.front().data() << endl;
           if (!has_peer(remot_end)) {
             peers.push_back(remot_end);
           }

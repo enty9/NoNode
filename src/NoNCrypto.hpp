@@ -1,11 +1,16 @@
 #ifndef NONCRYPTO_HPP
 #define NONCRYPTO_HPP
 
-#include "openssl/evp.h"
-#include "openssl/bio.h"
+#include "NoNPacket.pb.h"
 #include "iostream"
+#include "openssl/bio.h"
+#include "openssl/evp.h"
+#include "openssl/rand.h"
 #include "vector"
+#include <cstddef>
 #include <memory>
+#include <openssl/crypto.h>
+#include <openssl/ec.h>
 #include <openssl/err.h>
 #include <openssl/obj_mac.h>
 #include <string>
@@ -25,6 +30,9 @@ using EVP_MD_CTX_ptr = unique_ptr<EVP_MD_CTX, EVP_MD_CTX_Deleter>;
 struct BIO_Deleter{void operator()(BIO* p){BIO_free_all(p);}};
 using BIO_ptr = unique_ptr<BIO, BIO_Deleter>;
 
+struct EVP_CIPHER_Deleter{void operator()(EVP_CIPHER_CTX* p){EVP_CIPHER_CTX_free(p);}};
+using EVP_CIPHER_CTX_ptr = unique_ptr<EVP_CIPHER_CTX, EVP_CIPHER_Deleter>;
+
 class TNonCrypto {
 public:
    TNonCrypto() {
@@ -37,10 +45,10 @@ public:
     vector<unsigned char> compute_shared_sector(const EVP_PKEY* private_key, const EVP_PKEY* peer_public_key);
     EVP_PKEY_ptr load_private_key(string &filename, string &password);
     EVP_PKEY_ptr load_public_key(string &filename);
-    vector<unsigned char> sign(const EVP_PKEY *key,
+    vector<unsigned char> sign(const EVP_PKEY *prkey,
                                const vector<unsigned char> &data,
                                const EVP_MD *md = EVP_sha256());
-    bool verify(const EVP_PKEY *key, vector<unsigned char> &data,
+    bool verify(const EVP_PKEY *pukey, vector<unsigned char> &data,
                 vector<unsigned char> &signature,
                 const EVP_MD *md = EVP_sha256());
     vector<unsigned char> serialize_public_key(const EVP_PKEY *key);
@@ -49,6 +57,33 @@ public:
       EVP_cleanup();
       ERR_free_strings();
     }
+    vector<unsigned char> generate_random_bytes(size_t length) {
+      vector<unsigned char> bytes(length);
+      return bytes;
+    }
+    network::Packet encrypt(const EVP_PKEY *recipient_pubk,
+                            const EVP_PKEY *prkey, vector<unsigned char> &data,
+                            int nid = NID_X9_62_prime256v1);
+    vector<unsigned char> decrypt(const EVP_PKEY *recipient_privk,
+                                  const network::Packet data);
+    
+private:
+  vector<unsigned char> generate_rand_byte(size_t len = 16) {
+    vector<unsigned char> byte(len);
+    RAND_bytes(byte.data(), len);
+
+    return byte;
+  }
+
+  vector<unsigned char> get_pubk(const EVP_PKEY *pkey) {
+    size_t pub_len = 0;
+    EVP_PKEY_get_raw_public_key(pkey, NULL, &pub_len);
+
+    vector<unsigned char> pub_key(pub_len);
+    EVP_PKEY_get_raw_public_key(pkey, pub_key.data(), &pub_len);
+
+    return pub_key;
+  }
 };
 
 

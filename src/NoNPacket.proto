@@ -11,8 +11,16 @@ enum Types{
     FILLE = 5;
 }
 
+message Data{
+    bytes ephemeral_public_key = 1;
+    bytes datas = 2;
+    bytes iv = 3;
+    bytes tag = 4;
+    bytes signature = 5;
+}
+
 message Packet {
-    bytes data = 1;
+    Data data = 1;
     string time = 2;
     Types type = 3;
     repeated float values = 4;

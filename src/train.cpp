@@ -6,11 +6,33 @@
 #include <thread>
 #include "NoNPacket.pb.h"
 #include "NoNProtocol.hpp"
+#include "NoNCrypto.hpp"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
+  TNonCrypto crypto;
 
+  auto key = crypto.generatekey();
+
+  string way = "public.pem";
+  string ways = "private.pem";
+  string password = "hello228!!@??";
+
+  EVP_PKEY_ptr private_key;
+  EVP_PKEY_ptr public_key;
+
+  if (crypto.load_private_key(ways, password) != nullptr) {
+    crypto.save_public_key(key.get(), way);
+    crypto.save_private_key(key.get(), ways, password);
+    private_key = crypto.load_private_key(ways, password);
+    public_key = crypto.load_public_key(way);
+  } else {
+    private_key = crypto.load_private_key(ways, password);
+    public_key = crypto.load_public_key(way);
+  }
+
+  /*
     short port = stoi(argv[1]);
     boost::asio::io_context io;
     TNonProto proto(io, port);
@@ -46,4 +68,5 @@ int main(int argc, char *argv[]) {
     }
 
     io_thread.join();
+  */
 }
