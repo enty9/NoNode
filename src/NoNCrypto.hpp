@@ -66,6 +66,12 @@ public:
                             int nid = NID_X9_62_prime256v1);
     vector<unsigned char> decrypt(const EVP_PKEY *recipient_privk,
                                   const network::Packet data);
+
+    vector<unsigned char> hkdf_derive(const vector<unsigned char> &shared_key,
+                                      size_t output_length,
+                                      const vector<unsigned char> &salt,
+                                      const vector<unsigned char> &info = {},
+                                      const EVP_MD* hash_algorithm = EVP_sha256());
     
 private:
   vector<unsigned char> generate_rand_byte(size_t len = 16) {

@@ -7,6 +7,7 @@
 #include <exception>
 #include <openssl/bio.h>
 #include <openssl/crypto.h>
+#include <openssl/dh.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>
 #include <openssl/obj_mac.h>
@@ -14,10 +15,11 @@
 #include <openssl/x509.h>
 #include <stdexcept>
 #include <vector>
+#include <openssl/kdf.h>
 
 using namespace std;
 
-// Все или почти все надо переделать и добавить HKDF
+// Надо затестить и если че перделать
 
 EVP_PKEY_ptr TNonCrypto::generatekey(int nid) {
   try{
@@ -158,14 +160,16 @@ network::Packet TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   cipherdata.resize(data.size() + EVP_MAX_BLOCK_LENGTH);
 
   vector<unsigned char> signature = sign(prkey, data);
-  vector<unsigned char> iv = generate_rand_byte(12);
 
   vector<unsigned char> shared_key = compute_shared_sector(eph_key, recipient_pubk);
 
+  vector<unsigned char> iv = hkdf_derive(shared_key, 12, generate_rand_byte());
+  vector<unsigned char> hkdf_shared_key = hkdf_derive(shared_key, 32, generate_rand_byte());
+  
   int len, cipherdata_len;
 
   try {
-    EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_gcm(), NULL, shared_key.data(), iv.data());
+    EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_gcm(), NULL, hkdf_shared_key.data(), iv.data());
     EVP_EncryptUpdate(ctx.get(), cipherdata.data(), &len, data.data(), data.size());
     cipherdata_len = len;
     EVP_EncryptFinal_ex(ctx.get(), cipherdata.data() + len, &len);
@@ -183,4 +187,22 @@ network::Packet TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
 
 
   return pack;
+}
+
+vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &shared_key,
+                        size_t output_length, const vector<unsigned char> &salt,
+                        const vector<unsigned char> &info,
+                        const EVP_MD *hash_algorithm) {
+
+  EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL));
+
+  EVP_PKEY_derive_init(ctx.get());
+  EVP_PKEY_CTX_set_hkdf_md(ctx.get(), hash_algorithm);
+  EVP_PKEY_CTX_set1_hkdf_salt(ctx.get(), salt.data(), salt.size());
+  EVP_PKEY_CTX_set1_hkdf_key(ctx.get(), shared_key.data(), shared_key.size());
+  EVP_PKEY_CTX_add1_hkdf_info(ctx.get(), info.empty() ? NULL : info.data(), info.size());
+  vector<unsigned char> output_key(output_length);
+  EVP_PKEY_derive(ctx.get(), output_key.data(), &output_length);
+
+  return output_key;
 }
