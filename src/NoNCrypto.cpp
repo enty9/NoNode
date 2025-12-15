@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstring>
 #include <exception>
+#include <memory>
 #include <openssl/bio.h>
 #include <openssl/crypto.h>
 #include <openssl/dh.h>
@@ -16,11 +17,14 @@
 #include <stdexcept>
 #include <vector>
 #include <openssl/kdf.h>
+#include <chrono>
+#include <ctime>
 
 using namespace std;
 
 // Надо затестить и если че перделать
 
+// Is work
 EVP_PKEY_ptr TNonCrypto::generatekey(int nid) {
   try{
     EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL));
@@ -36,7 +40,7 @@ EVP_PKEY_ptr TNonCrypto::generatekey(int nid) {
     return EVP_PKEY_ptr(nullptr);
   }
 }
-
+// Is work
 void TNonCrypto::save_private_key(const EVP_PKEY *key, string &filename, string &password) {
   if (key == nullptr) throw runtime_error("Failed create file because dont have a key");
   BIO_ptr bio(BIO_new_file(filename.c_str(), "w"));
@@ -50,13 +54,14 @@ void TNonCrypto::save_private_key(const EVP_PKEY *key, string &filename, string 
                              password.length(), nullptr, nullptr);
   }
 }
+// Is work
 void TNonCrypto::save_public_key(const EVP_PKEY *key, string &filename) {
   if (key == nullptr) throw runtime_error("Failed create file because dont have a key");
   BIO_ptr bio(BIO_new_file(filename.c_str(), "w"));
 
   PEM_write_bio_PUBKEY(bio.get(), const_cast<EVP_PKEY *>(key));
 }
-
+// Is work
 EVP_PKEY_ptr TNonCrypto::load_private_key(string &filename, string &password) {
   try{
     BIO_ptr bio(BIO_new_file(filename.c_str(), "r"));
@@ -68,6 +73,7 @@ EVP_PKEY_ptr TNonCrypto::load_private_key(string &filename, string &password) {
     return EVP_PKEY_ptr(nullptr);
   }
 }
+// Is work
 EVP_PKEY_ptr TNonCrypto::load_public_key(string &filename) {
   try {
     BIO_ptr bio(BIO_new_file(filename.c_str(), "r"));
@@ -80,6 +86,7 @@ EVP_PKEY_ptr TNonCrypto::load_public_key(string &filename) {
   }
 }
 
+// Is work
 vector<unsigned char> TNonCrypto::sign(const EVP_PKEY *prkey,
                            const vector<unsigned char> &data,
                            const EVP_MD *md) {
@@ -96,6 +103,7 @@ vector<unsigned char> TNonCrypto::sign(const EVP_PKEY *prkey,
   signature.resize(sig_len);
   return signature;
 }
+// Is work
 bool TNonCrypto::verify(const EVP_PKEY *pukey, vector<unsigned char> &data,
                         vector<unsigned char> &signature, const EVP_MD *md) {
   EVP_MD_CTX_ptr ctx(EVP_MD_CTX_new());
@@ -124,8 +132,8 @@ vector<unsigned char> TNonCrypto::compute_shared_sector(const EVP_PKEY *private_
 
   return shared_secret;
 }
-
-vector<unsigned char> TNonCrypto::serialize_public_key(const EVP_PKEY *key) {
+// Is work
+vector<unsigned char> TNonCrypto::serialize_key(const EVP_PKEY *key) {
   BIO_ptr bio(BIO_new(BIO_s_mem()));
   i2d_PUBKEY_bio(bio.get(), const_cast<EVP_PKEY *>(key));
   BUF_MEM *buf_mem = nullptr;
@@ -135,60 +143,67 @@ vector<unsigned char> TNonCrypto::serialize_public_key(const EVP_PKEY *key) {
 
   return serialized;
 }
-EVP_PKEY_ptr TNonCrypto::deserialize_public_key(vector<unsigned char>* serialized){
+EVP_PKEY_ptr TNonCrypto::deserialize_key(vector<unsigned char>* serialized){
   BIO_ptr bio(BIO_new_mem_buf(serialized->data(), serialized->size()));
   EVP_PKEY *key = nullptr;
   d2i_PUBKEY_bio(bio.get(), &key);
 
   return EVP_PKEY_ptr(key);
 }
-
-network::Packet TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
+// Not work
+Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
                                     const EVP_PKEY *prkey,
-                                    vector<unsigned char> &data, int nid) {
-  network::Packet pack;
-  EVP_PKEY *eph_key;
+                                    vector<unsigned char> &data, int nid,
+                                    network::Types type) {
 
-  EVP_CIPHER_CTX_ptr ctx(EVP_CIPHER_CTX_new());
+  // Generate Ephemeral Key
+  EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(nid, NULL));
+  EVP_PKEY_keygen_init(ctx.get());
+  EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx.get(), nid);
+  EVP_PKEY *eph_key = nullptr;
+  EVP_PKEY_keygen(ctx.get(), &eph_key);
 
-  EVP_PKEY_CTX_ptr kctx(EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL));
-  EVP_PKEY_keygen_init(kctx.get());
-  EVP_PKEY_CTX_set_ec_paramgen_curve_nid(kctx.get(), nid);
-  EVP_PKEY_keygen(kctx.get(), &eph_key);
+  // Generate signature
+  vector<unsigned char> signature = sign(prkey, data);
 
+  // Generate cipher data
+  EVP_CIPHER_CTX_ptr ciptx(EVP_CIPHER_CTX_new());
   vector<unsigned char> cipherdata;
   cipherdata.resize(data.size() + EVP_MAX_BLOCK_LENGTH);
-
-  vector<unsigned char> signature = sign(prkey, data);
 
   vector<unsigned char> shared_key = compute_shared_sector(eph_key, recipient_pubk);
 
   vector<unsigned char> iv = hkdf_derive(shared_key, 12, generate_rand_byte());
   vector<unsigned char> hkdf_shared_key = hkdf_derive(shared_key, 32, generate_rand_byte());
-  
   int len, cipherdata_len;
 
-  try {
-    EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_gcm(), NULL, hkdf_shared_key.data(), iv.data());
-    EVP_EncryptUpdate(ctx.get(), cipherdata.data(), &len, data.data(), data.size());
-    cipherdata_len = len;
-    EVP_EncryptFinal_ex(ctx.get(), cipherdata.data() + len, &len);
-    cipherdata_len += len;
-    cipherdata.resize(cipherdata_len);
+  EVP_EncryptInit_ex(ciptx.get(), EVP_aes_256_gcm(), NULL,
+                     hkdf_shared_key.data(), iv.data());
+  EVP_EncryptUpdate(ciptx.get(), cipherdata.data(), &len, data.data(),
+                    data.size());
+  cipherdata_len = len;
 
-    network::Data data;
+  EVP_EncryptFinal_ex(ciptx.get(), cipherdata.data() + len, &len);
+  cipherdata_len += len;
+  cipherdata.resize(cipherdata_len);
 
-  } catch (exception e) {
-    cout << "Error:" << e.what() << endl;
+  auto now = chrono::system_clock::now();
+  time_t now_time = chrono::system_clock::to_time_t(now);
 
-  }
-
+  // Compose packet
+  Pck pack;
+  pack.ciphdata = cipherdata;
+  pack.eph_key = eph_key;
+  pack.iv = iv;
+  pack.time = now_time;
+  pack.signature = signature;
+  
   EVP_PKEY_free(eph_key);
-
 
   return pack;
 }
 
+// Is work
 vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &shared_key,
                         size_t output_length, const vector<unsigned char> &salt,
                         const vector<unsigned char> &info,

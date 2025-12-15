@@ -15,7 +15,6 @@ message Data{
     bytes ephemeral_public_key = 1;
     bytes datas = 2;
     bytes iv = 3;
-    bytes tag = 4;
     bytes signature = 5;
 }
 

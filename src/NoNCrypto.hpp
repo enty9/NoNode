@@ -8,6 +8,7 @@
 #include "openssl/rand.h"
 #include "vector"
 #include <cstddef>
+#include <ctime>
 #include <memory>
 #include <openssl/crypto.h>
 #include <openssl/ec.h>
@@ -17,6 +18,14 @@
 #include <vector>
 
 using namespace std;
+
+struct Pck {
+  vector<unsigned char> ciphdata;
+  EVP_PKEY *eph_key;
+  vector<unsigned char> iv;
+  time_t time;
+  vector<unsigned char> signature;
+};
 
 struct EVP_PKEY_Deleter{void operator()(EVP_PKEY* p){EVP_PKEY_free(p);}};
 using EVP_PKEY_ptr = unique_ptr<EVP_PKEY, EVP_PKEY_Deleter>;
@@ -51,19 +60,17 @@ public:
     bool verify(const EVP_PKEY *pukey, vector<unsigned char> &data,
                 vector<unsigned char> &signature,
                 const EVP_MD *md = EVP_sha256());
-    vector<unsigned char> serialize_public_key(const EVP_PKEY *key);
-    EVP_PKEY_ptr deserialize_public_key(vector<unsigned char> *serialized);
+    vector<unsigned char> serialize_key(const EVP_PKEY *key);
+    EVP_PKEY_ptr deserialize_key(vector<unsigned char> *serialized);
     void cleanup() {
       EVP_cleanup();
       ERR_free_strings();
     }
-    vector<unsigned char> generate_random_bytes(size_t length) {
-      vector<unsigned char> bytes(length);
-      return bytes;
-    }
-    network::Packet encrypt(const EVP_PKEY *recipient_pubk,
+    Pck encrypt(const EVP_PKEY *recipient_pubk,
                             const EVP_PKEY *prkey, vector<unsigned char> &data,
-                            int nid = NID_X9_62_prime256v1);
+                            int nid = NID_X9_62_prime256v1,
+                            network::Types type = network::Types::UNSPECIFIED);
+    
     vector<unsigned char> decrypt(const EVP_PKEY *recipient_privk,
                                   const network::Packet data);
 

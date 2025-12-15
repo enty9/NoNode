@@ -1,11 +1,12 @@
 #include <boost/asio.hpp>
+#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <openssl/ec.h>
+#include <ostream>
 #include <string>
 #include <thread>
-#include "NoNPacket.pb.h"
-#include "NoNProtocol.hpp"
+#include <vector>
 #include "NoNCrypto.hpp"
 
 using namespace std;
@@ -19,19 +20,24 @@ int main(int argc, char *argv[]) {
   string ways = "private.pem";
   string password = "hello228!!@??";
 
-  EVP_PKEY_ptr private_key;
-  EVP_PKEY_ptr public_key;
+  string data = "Hello";
+  vector<unsigned char> bytes(data.begin(), data.end());
 
-  if (crypto.load_private_key(ways, password) != nullptr) {
-    crypto.save_public_key(key.get(), way);
-    crypto.save_private_key(key.get(), ways, password);
-    private_key = crypto.load_private_key(ways, password);
-    public_key = crypto.load_public_key(way);
-  } else {
-    private_key = crypto.load_private_key(ways, password);
-    public_key = crypto.load_public_key(way);
-  }
+  EVP_PKEY_ptr privkey;
+  EVP_PKEY_ptr pubkey;
 
+  crypto.save_public_key(key.get(), way);
+  crypto.save_private_key(key.get(), ways, password);
+
+  privkey = crypto.load_private_key(ways, password);
+  pubkey = crypto.load_public_key(way);
+
+  Pck ret = crypto.encrypt(pubkey.get(), privkey.get(), bytes);
+
+  cout << ret.ciphdata.data() << ":" << ret.ciphdata.size() << endl;
+
+  system("rm -f train public.pem private.pem");
+  crypto.cleanup();
   /*
     short port = stoi(argv[1]);
     boost::asio::io_context io;

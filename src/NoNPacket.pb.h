@@ -466,7 +466,6 @@ class Data final : public ::google::protobuf::Message
     kEphemeralPublicKeyFieldNumber = 1,
     kDatasFieldNumber = 2,
     kIvFieldNumber = 3,
-    kTagFieldNumber = 4,
     kSignatureFieldNumber = 5,
   };
   // bytes ephemeral_public_key = 1;
@@ -514,21 +513,6 @@ class Data final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_iv();
 
   public:
-  // bytes tag = 4;
-  void clear_tag() ;
-  const ::std::string& tag() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_tag(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_tag();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_tag();
-  void set_allocated_tag(::std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const ::std::string& _internal_tag() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_tag(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_tag();
-
-  public:
   // bytes signature = 5;
   void clear_signature() ;
   const ::std::string& signature() const;
@@ -548,7 +532,7 @@ class Data final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
+  static const ::google::protobuf::internal::TcParseTable<3, 4,
                                    0, 0,
                                    2>
       _table_;
@@ -573,7 +557,6 @@ class Data final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr ephemeral_public_key_;
     ::google::protobuf::internal::ArenaStringPtr datas_;
     ::google::protobuf::internal::ArenaStringPtr iv_;
-    ::google::protobuf::internal::ArenaStringPtr tag_;
     ::google::protobuf::internal::ArenaStringPtr signature_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1039,76 +1022,11 @@ inline void Data::set_allocated_iv(::std::string* PROTOBUF_NULLABLE value) {
   // @@protoc_insertion_point(field_set_allocated:network.Data.iv)
 }
 
-// bytes tag = 4;
-inline void Data::clear_tag() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.tag_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000008U;
-}
-inline const ::std::string& Data::tag() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:network.Data.tag)
-  return _internal_tag();
-}
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void Data::set_tag(Arg_&& arg, Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000008U;
-  _impl_.tag_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:network.Data.tag)
-}
-inline ::std::string* PROTOBUF_NONNULL Data::mutable_tag()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::std::string* _s = _internal_mutable_tag();
-  // @@protoc_insertion_point(field_mutable:network.Data.tag)
-  return _s;
-}
-inline const ::std::string& Data::_internal_tag() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.tag_.Get();
-}
-inline void Data::_internal_set_tag(const ::std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000008U;
-  _impl_.tag_.Set(value, GetArena());
-}
-inline ::std::string* PROTOBUF_NONNULL Data::_internal_mutable_tag() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000008U;
-  return _impl_.tag_.Mutable( GetArena());
-}
-inline ::std::string* PROTOBUF_NULLABLE Data::release_tag() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:network.Data.tag)
-  if ((_impl_._has_bits_[0] & 0x00000008U) == 0) {
-    return nullptr;
-  }
-  _impl_._has_bits_[0] &= ~0x00000008U;
-  auto* released = _impl_.tag_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.tag_.Set("", GetArena());
-  }
-  return released;
-}
-inline void Data::set_allocated_tag(::std::string* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000008U;
-  } else {
-    _impl_._has_bits_[0] &= ~0x00000008U;
-  }
-  _impl_.tag_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.tag_.IsDefault()) {
-    _impl_.tag_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:network.Data.tag)
-}
-
 // bytes signature = 5;
 inline void Data::clear_signature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.signature_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000010U;
+  _impl_._has_bits_[0] &= ~0x00000008U;
 }
 inline const ::std::string& Data::signature() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1118,7 +1036,7 @@ inline const ::std::string& Data::signature() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Data::set_signature(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000010U;
+  _impl_._has_bits_[0] |= 0x00000008U;
   _impl_.signature_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:network.Data.signature)
 }
@@ -1134,21 +1052,21 @@ inline const ::std::string& Data::_internal_signature() const {
 }
 inline void Data::_internal_set_signature(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000010U;
+  _impl_._has_bits_[0] |= 0x00000008U;
   _impl_.signature_.Set(value, GetArena());
 }
 inline ::std::string* PROTOBUF_NONNULL Data::_internal_mutable_signature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000010U;
+  _impl_._has_bits_[0] |= 0x00000008U;
   return _impl_.signature_.Mutable( GetArena());
 }
 inline ::std::string* PROTOBUF_NULLABLE Data::release_signature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:network.Data.signature)
-  if ((_impl_._has_bits_[0] & 0x00000010U) == 0) {
+  if ((_impl_._has_bits_[0] & 0x00000008U) == 0) {
     return nullptr;
   }
-  _impl_._has_bits_[0] &= ~0x00000010U;
+  _impl_._has_bits_[0] &= ~0x00000008U;
   auto* released = _impl_.signature_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.signature_.Set("", GetArena());
@@ -1158,9 +1076,9 @@ inline ::std::string* PROTOBUF_NULLABLE Data::release_signature() {
 inline void Data::set_allocated_signature(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000010U;
+    _impl_._has_bits_[0] |= 0x00000008U;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000010U;
+    _impl_._has_bits_[0] &= ~0x00000008U;
   }
   _impl_.signature_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.signature_.IsDefault()) {
