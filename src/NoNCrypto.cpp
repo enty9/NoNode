@@ -122,11 +122,11 @@ bool TNonCrypto::verify(const EVP_PKEY *pukey, vector<unsigned char> &data,
 
 vector<unsigned char> TNonCrypto::compute_shared_sector(const EVP_PKEY *private_key,
                                             const EVP_PKEY *peer_public_key) {
-  EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new(const_cast<EVP_PKEY*>(private_key), nullptr));
+  EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new(const_cast<EVP_PKEY*>(private_key), NULL));
   EVP_PKEY_derive_init(ctx.get());
   EVP_PKEY_derive_set_peer(ctx.get(), const_cast<EVP_PKEY *>(peer_public_key));
   size_t secret_len = 0;
-  EVP_PKEY_derive(ctx.get(), nullptr, &secret_len);
+  EVP_PKEY_derive(ctx.get(), NULL, &secret_len);
   vector<unsigned char> shared_secret(secret_len);
   EVP_PKEY_derive(ctx.get(), shared_secret.data(), &secret_len);
 
@@ -169,7 +169,7 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   // Generate cipher data
   EVP_CIPHER_CTX_ptr ciptx(EVP_CIPHER_CTX_new());
   vector<unsigned char> cipherdata;
-  cipherdata.resize(data.size() + EVP_MAX_BLOCK_LENGTH);
+  cipherdata.resize(data.size() + EVP_GCM_TLS_TAG_LEN);
 
   vector<unsigned char> shared_key = compute_shared_sector(eph_key, recipient_pubk);
 
@@ -185,20 +185,22 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
 
   EVP_EncryptFinal_ex(ciptx.get(), cipherdata.data() + len, &len);
   cipherdata_len += len;
+
+  EVP_CIPHER_CTX_ctrl(ciptx.get(), EVP_CTRL_GCM_GET_TAG, EVP_GCM_TLS_TAG_LEN, cipherdata.data() + cipherdata_len);
+  cipherdata_len += EVP_GCM_TLS_TAG_LEN;
   cipherdata.resize(cipherdata_len);
 
   auto now = chrono::system_clock::now();
   time_t now_time = chrono::system_clock::to_time_t(now);
 
+  EVP_PKEY_ptr key(eph_key);
   // Compose packet
   Pck pack;
   pack.ciphdata = cipherdata;
-  pack.eph_key = eph_key;
+  pack.eph_key = &key;
   pack.iv = iv;
   pack.time = now_time;
   pack.signature = signature;
-  
-  EVP_PKEY_free(eph_key);
 
   return pack;
 }
@@ -216,8 +218,10 @@ vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &share
   EVP_PKEY_CTX_set1_hkdf_salt(ctx.get(), salt.data(), salt.size());
   EVP_PKEY_CTX_set1_hkdf_key(ctx.get(), shared_key.data(), shared_key.size());
   EVP_PKEY_CTX_add1_hkdf_info(ctx.get(), info.empty() ? NULL : info.data(), info.size());
-  vector<unsigned char> output_key(output_length);
-  EVP_PKEY_derive(ctx.get(), output_key.data(), &output_length);
+  size_t out_len = output_length;
+  vector<unsigned char> output_key(out_len);
+  EVP_PKEY_derive(ctx.get(), output_key.data(), &out_len);
+  output_key.resize(out_len);
 
   return output_key;
 }

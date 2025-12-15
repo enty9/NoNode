@@ -19,14 +19,6 @@
 
 using namespace std;
 
-struct Pck {
-  vector<unsigned char> ciphdata;
-  EVP_PKEY *eph_key;
-  vector<unsigned char> iv;
-  time_t time;
-  vector<unsigned char> signature;
-};
-
 struct EVP_PKEY_Deleter{void operator()(EVP_PKEY* p){EVP_PKEY_free(p);}};
 using EVP_PKEY_ptr = unique_ptr<EVP_PKEY, EVP_PKEY_Deleter>;
 
@@ -41,6 +33,14 @@ using BIO_ptr = unique_ptr<BIO, BIO_Deleter>;
 
 struct EVP_CIPHER_Deleter{void operator()(EVP_CIPHER_CTX* p){EVP_CIPHER_CTX_free(p);}};
 using EVP_CIPHER_CTX_ptr = unique_ptr<EVP_CIPHER_CTX, EVP_CIPHER_Deleter>;
+
+struct Pck {
+  vector<unsigned char> ciphdata;
+  EVP_PKEY_ptr *eph_key;
+  vector<unsigned char> iv;
+  time_t time;
+  vector<unsigned char> signature;
+};
 
 class TNonCrypto {
 public:
