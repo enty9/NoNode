@@ -3,9 +3,9 @@
 #include "iostream"
 #include "openssl/pem.h"
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <exception>
-#include <memory>
 #include <openssl/bio.h>
 #include <openssl/crypto.h>
 #include <openssl/dh.h>
@@ -19,6 +19,8 @@
 #include <openssl/kdf.h>
 #include <chrono>
 #include <ctime>
+#include <openssl/kdf.h>
+#include <argon2.h>
 
 using namespace std;
 
@@ -156,6 +158,7 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
                                     vector<unsigned char> &data, int nid,
                                     network::Types type) {
 
+  /*
   // Generate Ephemeral Key
   EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(nid, NULL));
   EVP_PKEY_keygen_init(ctx.get());
@@ -171,11 +174,12 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   vector<unsigned char> cipherdata;
   cipherdata.resize(data.size() + EVP_GCM_TLS_TAG_LEN);
 
-  vector<unsigned char> shared_key = compute_shared_sector(eph_key, recipient_pubk);
+  vector<unsigned char> shared_key = compute_shared_sector(eph_key,
+recipient_pubk);
 
   vector<unsigned char> iv = hkdf_derive(shared_key, 12, generate_rand_byte());
-  vector<unsigned char> hkdf_shared_key = hkdf_derive(shared_key, 32, generate_rand_byte());
-  int len, cipherdata_len;
+  vector<unsigned char> hkdf_shared_key = hkdf_derive(shared_key, 32,
+generate_rand_byte()); int len, cipherdata_len;
 
   EVP_EncryptInit_ex(ciptx.get(), EVP_aes_256_gcm(), NULL,
                      hkdf_shared_key.data(), iv.data());
@@ -186,8 +190,8 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   EVP_EncryptFinal_ex(ciptx.get(), cipherdata.data() + len, &len);
   cipherdata_len += len;
 
-  EVP_CIPHER_CTX_ctrl(ciptx.get(), EVP_CTRL_GCM_GET_TAG, EVP_GCM_TLS_TAG_LEN, cipherdata.data() + cipherdata_len);
-  cipherdata_len += EVP_GCM_TLS_TAG_LEN;
+  EVP_CIPHER_CTX_ctrl(ciptx.get(), EVP_CTRL_GCM_GET_TAG, EVP_GCM_TLS_TAG_LEN,
+cipherdata.data() + cipherdata_len); cipherdata_len += EVP_GCM_TLS_TAG_LEN;
   cipherdata.resize(cipherdata_len);
 
   auto now = chrono::system_clock::now();
@@ -197,12 +201,13 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   // Compose packet
   Pck pack;
   pack.ciphdata = cipherdata;
-  pack.eph_key = &key;
+  pack.eph_key = move(key);
   pack.iv = iv;
   pack.time = now_time;
   pack.signature = signature;
 
   return pack;
+ */
 }
 
 // Is work
@@ -224,4 +229,25 @@ vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &share
   output_key.resize(out_len);
 
   return output_key;
+}
+// Is work
+string TNonCrypto::hash_password(const string &pswd, vector<unsigned char> salt) {
+  const uint32_t t_cost = 3;
+  const uint32_t m_cost = 1 << 16;
+  const uint32_t parallelism = 1;
+  const size_t hash_len = 32;
+
+  char encoded[512];
+  argon2id_hash_encoded(t_cost, m_cost, parallelism, pswd.data(), pswd.size(),
+                        salt.data(), salt.size(), hash_len, encoded,
+                        sizeof(encoded));
+  
+  return string(encoded);
+}
+
+bool TNonCrypto::check_password(const string &pswd,
+                                const char *encoded) {
+  int check = argon2id_verify(encoded, pswd.data(), pswd.size());
+
+  return check == ARGON2_OK;
 }

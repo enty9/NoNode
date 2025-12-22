@@ -1,3 +1,4 @@
+#include <argon2.h>
 #include <boost/asio.hpp>
 #include <cstdlib>
 #include <exception>
@@ -14,29 +15,17 @@ using namespace std;
 int main(int argc, char *argv[]) {
   TNonCrypto crypto;
 
-  auto key = crypto.generatekey();
-
-  string way = "public.pem";
-  string ways = "private.pem";
   string password = "hello228!!@??";
 
   string data = "Hello";
-  vector<unsigned char> bytes(data.begin(), data.end());
 
-  EVP_PKEY_ptr privkey;
-  EVP_PKEY_ptr pubkey;
 
-  crypto.save_public_key(key.get(), way);
-  crypto.save_private_key(key.get(), ways, password);
+  string hash = crypto.hash_password(password, crypto.generate_rand_byte());
 
-  privkey = crypto.load_private_key(ways, password);
-  pubkey = crypto.load_public_key(way);
+  cout << hash << endl;
+  cout << crypto.check_password(password, hash.c_str()) << endl;
 
-  Pck ret = crypto.encrypt(pubkey.get(), privkey.get(), bytes);
-
-  cout << ret.ciphdata.data() << ":" << ret.ciphdata.size() << endl;
-
-  system("rm -f train public.pem private.pem");
+  
   crypto.cleanup();
   /*
     short port = stoi(argv[1]);

@@ -7,6 +7,7 @@
 #include "openssl/evp.h"
 #include "openssl/rand.h"
 #include "vector"
+#include <argon2.h>
 #include <cstddef>
 #include <ctime>
 #include <memory>
@@ -36,7 +37,7 @@ using EVP_CIPHER_CTX_ptr = unique_ptr<EVP_CIPHER_CTX, EVP_CIPHER_Deleter>;
 
 struct Pck {
   vector<unsigned char> ciphdata;
-  EVP_PKEY_ptr *eph_key;
+  EVP_PKEY_ptr eph_key;
   vector<unsigned char> iv;
   time_t time;
   vector<unsigned char> signature;
@@ -79,14 +80,18 @@ public:
                                       const vector<unsigned char> &salt,
                                       const vector<unsigned char> &info = {},
                                       const EVP_MD* hash_algorithm = EVP_sha256());
-    
-private:
-  vector<unsigned char> generate_rand_byte(size_t len = 16) {
-    vector<unsigned char> byte(len);
-    RAND_bytes(byte.data(), len);
 
-    return byte;
-  }
+    static string hash_password(const string &pswd, vector<unsigned char> salt);
+    bool check_password(const string &pswd, const char *encoded);
+
+    vector<unsigned char> generate_rand_byte(size_t len = 16) {
+      vector<unsigned char> byte(len);
+      RAND_bytes(byte.data(), len);
+
+      return byte;
+    }
+
+private:
 
   vector<unsigned char> get_pubk(const EVP_PKEY *pkey) {
     size_t pub_len = 0;

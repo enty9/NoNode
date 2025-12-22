@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>907</width>
-    <height>625</height>
+    <width>954</width>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,25 +16,36 @@
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
     <string notr="true">*{
-	background-color: #0d0d12;
-	color: #f0f0f8;
+	background-color: #0C0C0C;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	height: 100vh;
 	display: flex;
 }</string>
    </property>
-   <widget class="QWidget" name="LeftWidget" native="true">
+   <widget class="QWidget" name="ShapkaWidget" native="true">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>101</width>
-      <height>621</height>
+      <width>941</width>
+      <height>60</height>
      </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>60</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>60</height>
+     </size>
     </property>
     <property name="styleSheet">
      <string notr="true">*{
-	background-color: #14141a;
+	background-color: #2D2D2D;
 	width: 72px;
 	display: flex;
 	flex-direction: column;
@@ -43,6 +54,50 @@
 	border-right: 1px solid #24242e;
 }</string>
     </property>
+    <widget class="QLineEdit" name="SearchEdit">
+     <property name="geometry">
+      <rect>
+       <x>132</x>
+       <y>10</y>
+       <width>681</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">#SearchEdit{
+	border-radius: 10px;
+    border: 1px solid gray;
+    font-size: 12px;
+    outline: none;
+    text-indent: 5px;
+   color: white;
+   background: none;
+}</string>
+     </property>
+     <property name="inputMask">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="widget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>19</x>
+      <y>69</y>
+      <width>911</width>
+      <height>571</height>
+     </rect>
+    </property>
+    <widget class="QWidget" name="widget_2" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>191</width>
+       <height>201</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
