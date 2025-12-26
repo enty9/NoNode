@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>menu_line.png</file>
+    <file>user_4_fill.png</file>
+  </qresource>
+</RCC>

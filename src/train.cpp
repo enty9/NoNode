@@ -15,17 +15,27 @@ using namespace std;
 int main(int argc, char *argv[]) {
   TNonCrypto crypto;
 
-  string password = "hello228!!@??";
+  EVP_PKEY_ptr key = crypto.generatekey();
 
-  string data = "Hello";
+  EVP_PKEY_ptr herkey = crypto.generatekey();
 
+  string filenam = "private.pem";
+  string file = "public.pem";
+  string passwd = "8888";
 
-  string hash = crypto.hash_password(password, crypto.generate_rand_byte());
+  string d = "hello";
+  vector<unsigned char> data(d.begin(), d.end());
 
-  cout << hash << endl;
-  cout << crypto.check_password(password, hash.c_str()) << endl;
+  crypto.save_private_key(key.get(), filenam, passwd);
+  crypto.save_public_key(key.get(), file);
 
-  
+  EVP_PKEY_ptr privkey = crypto.load_private_key(filenam, passwd);
+  EVP_PKEY_ptr pubkey = crypto.load_public_key(file);
+
+  Pck send = crypto.encrypt(pubkey.get(), privkey.get(), data);
+
+  cout << send.ciphdata.data() << endl;
+   
   crypto.cleanup();
   /*
     short port = stoi(argv[1]);

@@ -27,20 +27,20 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>941</width>
-      <height>60</height>
+      <width>961</width>
+      <height>65</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>0</width>
-      <height>60</height>
+      <height>65</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
       <width>16777215</width>
-      <height>60</height>
+      <height>65</height>
      </size>
     </property>
     <property name="styleSheet">
@@ -54,49 +54,219 @@
 	border-right: 1px solid #24242e;
 }</string>
     </property>
-    <widget class="QLineEdit" name="SearchEdit">
-     <property name="geometry">
-      <rect>
-       <x>132</x>
-       <y>10</y>
-       <width>681</width>
-       <height>41</height>
-      </rect>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
      </property>
-     <property name="styleSheet">
-      <string notr="true">#SearchEdit{
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>4</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="menuButton">
+       <property name="maximumSize">
+        <size>
+         <width>50</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">#menuButton{
+  background: none;
+  border: none;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/newPrefix/menu_line.png</normaloff>:/newPrefix/menu_line.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="SearchEdit">
+       <property name="minimumSize">
+        <size>
+         <width>650</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>-apple-system</family>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">#SearchEdit{
 	border-radius: 10px;
     border: 1px solid gray;
-    font-size: 12px;
     outline: none;
-    text-indent: 5px;
    color: white;
    background: none;
 }</string>
-     </property>
-     <property name="inputMask">
-      <string/>
-     </property>
-    </widget>
+       </property>
+       <property name="inputMask">
+        <string/>
+       </property>
+       <property name="text">
+        <string>Search...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="userButton">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">*{
+ 	background: none;
+	border: none;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/newPrefix/user_4_fill.png</normaloff>:/newPrefix/user_4_fill.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>60</width>
+         <height>60</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
-   <widget class="QWidget" name="widget" native="true">
+   <widget class="QWidget" name="mainwidget" native="true">
     <property name="geometry">
      <rect>
-      <x>19</x>
-      <y>69</y>
+      <x>10</x>
+      <y>70</y>
       <width>911</width>
       <height>571</height>
      </rect>
     </property>
-    <widget class="QWidget" name="widget_2" native="true">
+    <widget class="QWidget" name="listperswidget" native="true">
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>0</y>
-       <width>191</width>
-       <height>201</height>
+       <y>10</y>
+       <width>121</width>
+       <height>551</height>
       </rect>
      </property>
+     <property name="styleSheet">
+      <string notr="true">*{
+		background-color: #2D2D2D;
+		
+}</string>
+     </property>
+     <widget class="QWidget" name="perswidget" native="true">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>9</y>
+        <width>65</width>
+        <height>65</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>65</width>
+        <height>65</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>65</width>
+        <height>65</height>
+       </size>
+      </property>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>20</y>
+         <width>57</width>
+         <height>18</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Shadow::Plain</enum>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::AutoText</enum>
+       </property>
+      </widget>
+     </widget>
     </widget>
    </widget>
   </widget>

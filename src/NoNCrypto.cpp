@@ -152,15 +152,14 @@ EVP_PKEY_ptr TNonCrypto::deserialize_key(vector<unsigned char>* serialized){
 
   return EVP_PKEY_ptr(key);
 }
-// Not work
+// Is work
 Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
                                     const EVP_PKEY *prkey,
                                     vector<unsigned char> &data, int nid,
                                     network::Types type) {
 
-  /*
   // Generate Ephemeral Key
-  EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(nid, NULL));
+  EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL));
   EVP_PKEY_keygen_init(ctx.get());
   EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx.get(), nid);
   EVP_PKEY *eph_key = nullptr;
@@ -177,9 +176,12 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   vector<unsigned char> shared_key = compute_shared_sector(eph_key,
 recipient_pubk);
 
-  vector<unsigned char> iv = hkdf_derive(shared_key, 12, generate_rand_byte());
-  vector<unsigned char> hkdf_shared_key = hkdf_derive(shared_key, 32,
-generate_rand_byte()); int len, cipherdata_len;
+  vector<unsigned char> salt = generate_rand_byte();
+  vector<unsigned char> tag(16);
+  vector<unsigned char> iv = hkdf_derive(shared_key, 12, salt);
+  vector<unsigned char> hkdf_shared_key = hkdf_derive(shared_key, 32,salt);
+
+  int len, cipherdata_len;
 
   EVP_EncryptInit_ex(ciptx.get(), EVP_aes_256_gcm(), NULL,
                      hkdf_shared_key.data(), iv.data());
@@ -190,9 +192,7 @@ generate_rand_byte()); int len, cipherdata_len;
   EVP_EncryptFinal_ex(ciptx.get(), cipherdata.data() + len, &len);
   cipherdata_len += len;
 
-  EVP_CIPHER_CTX_ctrl(ciptx.get(), EVP_CTRL_GCM_GET_TAG, EVP_GCM_TLS_TAG_LEN,
-cipherdata.data() + cipherdata_len); cipherdata_len += EVP_GCM_TLS_TAG_LEN;
-  cipherdata.resize(cipherdata_len);
+  EVP_CIPHER_CTX_ctrl(ciptx.get(), EVP_CTRL_GCM_GET_TAG, 16, tag.data());
 
   auto now = chrono::system_clock::now();
   time_t now_time = chrono::system_clock::to_time_t(now);
@@ -205,9 +205,10 @@ cipherdata.data() + cipherdata_len); cipherdata_len += EVP_GCM_TLS_TAG_LEN;
   pack.iv = iv;
   pack.time = now_time;
   pack.signature = signature;
+  pack.salt = salt;
+  pack.tag = tag;
 
   return pack;
- */
 }
 
 // Is work

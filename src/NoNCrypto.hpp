@@ -41,6 +41,8 @@ struct Pck {
   vector<unsigned char> iv;
   time_t time;
   vector<unsigned char> signature;
+  vector<unsigned char> salt;
+  vector<unsigned char> tag;
 };
 
 class TNonCrypto {
