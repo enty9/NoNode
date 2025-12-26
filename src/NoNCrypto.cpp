@@ -210,8 +210,36 @@ recipient_pubk);
 
   return pack;
 }
+// +- work
+vector<unsigned char> TNonCrypto::decrypt(const EVP_PKEY *recipient_privk,
+                              const Pck &pack) {
+  vector<unsigned char> shared_key = compute_shared_sector(recipient_privk, pack.eph_key.get());
+  vector<unsigned char> aes_key = hkdf_derive(shared_key, 32, pack.salt);
 
-// Is work
+  EVP_CIPHER_CTX_ptr ctx(EVP_CIPHER_CTX_new());
+
+  EVP_DecryptInit_ex(ctx.get(), EVP_aes_256_gcm(), nullptr, nullptr, nullptr);
+  EVP_CIPHER_CTX_ctrl(ctx.get(), EVP_CTRL_GCM_SET_IVLEN, pack.iv.size(),
+                      nullptr);
+  EVP_DecryptInit_ex(ctx.get(), nullptr, nullptr, aes_key.data(),
+                     pack.iv.data());
+
+  vector<unsigned char> data(pack.ciphdata.size());
+  int len = 0, data_len = 0;
+
+  EVP_DecryptUpdate(ctx.get(), data.data(), &len, pack.ciphdata.data(),
+                    pack.ciphdata.size());
+  EVP_CIPHER_CTX_ctrl(ctx.get(), EVP_CTRL_GCM_SET_TAG, pack.tag.size(),
+                      (void *)pack.tag.data());
+  EVP_DecryptFinal_ex(ctx.get(), data.data() + data_len, &len);
+
+  data_len += len;
+  data.resize(data_len);
+
+  return data;
+}
+
+// +- work
 vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &shared_key,
                         size_t output_length, const vector<unsigned char> &salt,
                         const vector<unsigned char> &info,

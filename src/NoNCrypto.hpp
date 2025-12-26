@@ -75,7 +75,7 @@ public:
                             network::Types type = network::Types::UNSPECIFIED);
     
     vector<unsigned char> decrypt(const EVP_PKEY *recipient_privk,
-                                  const network::Packet data);
+                                  const Pck &pack);
 
     vector<unsigned char> hkdf_derive(const vector<unsigned char> &shared_key,
                                       size_t output_length,

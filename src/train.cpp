@@ -34,7 +34,11 @@ int main(int argc, char *argv[]) {
 
   Pck send = crypto.encrypt(pubkey.get(), privkey.get(), data);
 
-  cout << send.ciphdata.data() << endl;
+  vector<unsigned char> dd = crypto.decrypt(privkey.get(), send);
+
+  string daa(dd.begin(), dd.end());
+
+  cout << daa << endl;
    
   crypto.cleanup();
   /*
