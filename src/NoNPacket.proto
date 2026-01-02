@@ -9,20 +9,33 @@ enum Types{
     VIDEO = 3;
     IMAGE = 4;
     FILLE = 5;
+
+    CallRequest = 6;
+    CallAccept = 7;
+    CallReject = 8;
+    CallEnd = 9;
+    CallSignal = 10;
+
+    CallData = 11;
+    VideoData = 12;
 }
 
 message Data{
     bytes ephemeral_public_key = 1;
     bytes datas = 2;
     bytes iv = 3;
-    bytes signature = 5;
+    bytes tag = 4;
+    bytes salt = 5;
+    bytes signature = 6;
 }
 
 message Packet {
     Data data = 1;
     string time = 2;
     Types type = 3;
-    repeated float values = 4;
+    string version = 4;
+    bytes payload_length = 5;
+    repeated float values = 6;
 }
 
 message PUNCH{

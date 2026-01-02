@@ -2,14 +2,17 @@
 #include "NoNPacket.pb.h"
 #include "iostream"
 #include "openssl/pem.h"
+#include <cfenv>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <exception>
 #include <openssl/bio.h>
 #include <openssl/crypto.h>
 #include <openssl/dh.h>
 #include <openssl/ec.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/obj_mac.h>
 #include <openssl/params.h>
@@ -43,7 +46,7 @@ EVP_PKEY_ptr TNonCrypto::generatekey(int nid) {
   }
 }
 // Is work
-void TNonCrypto::save_private_key(const EVP_PKEY *key, string &filename, string &password) {
+void TNonCrypto::save_private_key(const EVP_PKEY *key, string filename, string password) {
   if (key == nullptr) throw runtime_error("Failed create file because dont have a key");
   BIO_ptr bio(BIO_new_file(filename.c_str(), "w"));
 
@@ -57,14 +60,14 @@ void TNonCrypto::save_private_key(const EVP_PKEY *key, string &filename, string 
   }
 }
 // Is work
-void TNonCrypto::save_public_key(const EVP_PKEY *key, string &filename) {
+void TNonCrypto::save_public_key(const EVP_PKEY *key, string filename) {
   if (key == nullptr) throw runtime_error("Failed create file because dont have a key");
   BIO_ptr bio(BIO_new_file(filename.c_str(), "w"));
 
   PEM_write_bio_PUBKEY(bio.get(), const_cast<EVP_PKEY *>(key));
 }
 // Is work
-EVP_PKEY_ptr TNonCrypto::load_private_key(string &filename, string &password) {
+EVP_PKEY_ptr TNonCrypto::load_private_key(string filename, string password) {
   try{
     BIO_ptr bio(BIO_new_file(filename.c_str(), "r"));
     EVP_PKEY *key = nullptr;
@@ -76,7 +79,7 @@ EVP_PKEY_ptr TNonCrypto::load_private_key(string &filename, string &password) {
   }
 }
 // Is work
-EVP_PKEY_ptr TNonCrypto::load_public_key(string &filename) {
+EVP_PKEY_ptr TNonCrypto::load_public_key(string filename) {
   try {
     BIO_ptr bio(BIO_new_file(filename.c_str(), "r"));
     EVP_PKEY *key = nullptr;
@@ -171,7 +174,7 @@ Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
   // Generate cipher data
   EVP_CIPHER_CTX_ptr ciptx(EVP_CIPHER_CTX_new());
   vector<unsigned char> cipherdata;
-  cipherdata.resize(data.size() + EVP_GCM_TLS_TAG_LEN);
+  cipherdata.resize(data.size());
 
   vector<unsigned char> shared_key = compute_shared_sector(eph_key,
 recipient_pubk);
@@ -189,10 +192,14 @@ recipient_pubk);
                     data.size());
   cipherdata_len = len;
 
-  EVP_EncryptFinal_ex(ciptx.get(), cipherdata.data() + len, &len);
+  EVP_EncryptFinal_ex(ciptx.get(), cipherdata.data() + cipherdata_len, &len);
   cipherdata_len += len;
 
   EVP_CIPHER_CTX_ctrl(ciptx.get(), EVP_CTRL_GCM_GET_TAG, 16, tag.data());
+
+  if (cipherdata_len != data.size()) {
+    cipherdata.resize(cipherdata_len);
+  }
 
   auto now = chrono::system_clock::now();
   time_t now_time = chrono::system_clock::to_time_t(now);
@@ -210,7 +217,7 @@ recipient_pubk);
 
   return pack;
 }
-// +- work
+//work
 vector<unsigned char> TNonCrypto::decrypt(const EVP_PKEY *recipient_privk,
                               const Pck &pack) {
   vector<unsigned char> shared_key = compute_shared_sector(recipient_privk, pack.eph_key.get());
@@ -229,9 +236,18 @@ vector<unsigned char> TNonCrypto::decrypt(const EVP_PKEY *recipient_privk,
 
   EVP_DecryptUpdate(ctx.get(), data.data(), &len, pack.ciphdata.data(),
                     pack.ciphdata.size());
+
+  data_len = len;
+  
   EVP_CIPHER_CTX_ctrl(ctx.get(), EVP_CTRL_GCM_SET_TAG, pack.tag.size(),
                       (void *)pack.tag.data());
-  EVP_DecryptFinal_ex(ctx.get(), data.data() + data_len, &len);
+  int final = EVP_DecryptFinal_ex(ctx.get(), data.data() + data_len, &len);
+
+  if (final <= 0) {
+    cerr << "Decrypt fialed: authentication tag mismatch" << endl;
+    ERR_print_errors_fp(stderr);
+    return vector<unsigned char>();
+  }
 
   data_len += len;
   data.resize(data_len);

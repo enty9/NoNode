@@ -85,6 +85,13 @@ enum Types : int {
   VIDEO = 3,
   IMAGE = 4,
   FILLE = 5,
+  CallRequest = 6,
+  CallAccept = 7,
+  CallReject = 8,
+  CallEnd = 9,
+  CallSignal = 10,
+  CallData = 11,
+  VideoData = 12,
   Types_INT_MIN_SENTINEL_DO_NOT_USE_ =
       ::std::numeric_limits<::int32_t>::min(),
   Types_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -95,11 +102,11 @@ extern const uint32_t Types_internal_data_[];
 inline constexpr Types Types_MIN =
     static_cast<Types>(0);
 inline constexpr Types Types_MAX =
-    static_cast<Types>(5);
+    static_cast<Types>(12);
 inline bool Types_IsValid(int value) {
-  return 0 <= value && value <= 5;
+  return 0 <= value && value <= 12;
 }
-inline constexpr int Types_ARRAYSIZE = 5 + 1;
+inline constexpr int Types_ARRAYSIZE = 12 + 1;
 const ::google::protobuf::EnumDescriptor* PROTOBUF_NONNULL Types_descriptor();
 template <typename T>
 const ::std::string& Types_Name(T value) {
@@ -110,7 +117,7 @@ const ::std::string& Types_Name(T value) {
 }
 template <>
 inline const ::std::string& Types_Name(Types value) {
-  return ::google::protobuf::internal::NameOfDenseEnum<Types_descriptor, 0, 5>(
+  return ::google::protobuf::internal::NameOfDenseEnum<Types_descriptor, 0, 12>(
       static_cast<int>(value));
 }
 inline bool Types_Parse(
@@ -466,7 +473,9 @@ class Data final : public ::google::protobuf::Message
     kEphemeralPublicKeyFieldNumber = 1,
     kDatasFieldNumber = 2,
     kIvFieldNumber = 3,
-    kSignatureFieldNumber = 5,
+    kTagFieldNumber = 4,
+    kSaltFieldNumber = 5,
+    kSignatureFieldNumber = 6,
   };
   // bytes ephemeral_public_key = 1;
   void clear_ephemeral_public_key() ;
@@ -513,7 +522,37 @@ class Data final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_iv();
 
   public:
-  // bytes signature = 5;
+  // bytes tag = 4;
+  void clear_tag() ;
+  const ::std::string& tag() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_tag(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_tag();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_tag();
+  void set_allocated_tag(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_tag() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_tag(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_tag();
+
+  public:
+  // bytes salt = 5;
+  void clear_salt() ;
+  const ::std::string& salt() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_salt(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_salt();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_salt();
+  void set_allocated_salt(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_salt() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_salt(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_salt();
+
+  public:
+  // bytes signature = 6;
   void clear_signature() ;
   const ::std::string& signature() const;
   template <typename Arg_ = const ::std::string&, typename... Args_>
@@ -532,7 +571,7 @@ class Data final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 4,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
                                    0, 0,
                                    2>
       _table_;
@@ -557,6 +596,8 @@ class Data final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr ephemeral_public_key_;
     ::google::protobuf::internal::ArenaStringPtr datas_;
     ::google::protobuf::internal::ArenaStringPtr iv_;
+    ::google::protobuf::internal::ArenaStringPtr tag_;
+    ::google::protobuf::internal::ArenaStringPtr salt_;
     ::google::protobuf::internal::ArenaStringPtr signature_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -710,12 +751,14 @@ class Packet final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kValuesFieldNumber = 4,
+    kValuesFieldNumber = 6,
     kTimeFieldNumber = 2,
+    kVersionFieldNumber = 4,
+    kPayloadLengthFieldNumber = 5,
     kDataFieldNumber = 1,
     kTypeFieldNumber = 3,
   };
-  // repeated float values = 4;
+  // repeated float values = 6;
   int values_size() const;
   private:
   int _internal_values_size() const;
@@ -748,6 +791,36 @@ class Packet final : public ::google::protobuf::Message
   ::std::string* PROTOBUF_NONNULL _internal_mutable_time();
 
   public:
+  // string version = 4;
+  void clear_version() ;
+  const ::std::string& version() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_version(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_version();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_version();
+  void set_allocated_version(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_version() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_version(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_version();
+
+  public:
+  // bytes payload_length = 5;
+  void clear_payload_length() ;
+  const ::std::string& payload_length() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_payload_length(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_payload_length();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_payload_length();
+  void set_allocated_payload_length(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_payload_length() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_payload_length(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_payload_length();
+
+  public:
   // .network.Data data = 1;
   bool has_data() const;
   void clear_data() ;
@@ -777,8 +850,8 @@ class Packet final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 4,
-                                   1, 27,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
+                                   1, 34,
                                    2>
       _table_;
 
@@ -801,6 +874,8 @@ class Packet final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedField<float> values_;
     ::google::protobuf::internal::ArenaStringPtr time_;
+    ::google::protobuf::internal::ArenaStringPtr version_;
+    ::google::protobuf::internal::ArenaStringPtr payload_length_;
     ::network::Data* PROTOBUF_NULLABLE data_;
     int type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -1022,11 +1097,141 @@ inline void Data::set_allocated_iv(::std::string* PROTOBUF_NULLABLE value) {
   // @@protoc_insertion_point(field_set_allocated:network.Data.iv)
 }
 
-// bytes signature = 5;
+// bytes tag = 4;
+inline void Data::clear_tag() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.tag_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000008U;
+}
+inline const ::std::string& Data::tag() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:network.Data.tag)
+  return _internal_tag();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Data::set_tag(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000008U;
+  _impl_.tag_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:network.Data.tag)
+}
+inline ::std::string* PROTOBUF_NONNULL Data::mutable_tag()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_tag();
+  // @@protoc_insertion_point(field_mutable:network.Data.tag)
+  return _s;
+}
+inline const ::std::string& Data::_internal_tag() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.tag_.Get();
+}
+inline void Data::_internal_set_tag(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000008U;
+  _impl_.tag_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Data::_internal_mutable_tag() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000008U;
+  return _impl_.tag_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Data::release_tag() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:network.Data.tag)
+  if ((_impl_._has_bits_[0] & 0x00000008U) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000008U;
+  auto* released = _impl_.tag_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.tag_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Data::set_allocated_tag(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000008U;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000008U;
+  }
+  _impl_.tag_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.tag_.IsDefault()) {
+    _impl_.tag_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:network.Data.tag)
+}
+
+// bytes salt = 5;
+inline void Data::clear_salt() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.salt_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000010U;
+}
+inline const ::std::string& Data::salt() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:network.Data.salt)
+  return _internal_salt();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Data::set_salt(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000010U;
+  _impl_.salt_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:network.Data.salt)
+}
+inline ::std::string* PROTOBUF_NONNULL Data::mutable_salt()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_salt();
+  // @@protoc_insertion_point(field_mutable:network.Data.salt)
+  return _s;
+}
+inline const ::std::string& Data::_internal_salt() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.salt_.Get();
+}
+inline void Data::_internal_set_salt(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000010U;
+  _impl_.salt_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Data::_internal_mutable_salt() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000010U;
+  return _impl_.salt_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Data::release_salt() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:network.Data.salt)
+  if ((_impl_._has_bits_[0] & 0x00000010U) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000010U;
+  auto* released = _impl_.salt_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.salt_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Data::set_allocated_salt(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000010U;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000010U;
+  }
+  _impl_.salt_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.salt_.IsDefault()) {
+    _impl_.salt_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:network.Data.salt)
+}
+
+// bytes signature = 6;
 inline void Data::clear_signature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.signature_.ClearToEmpty();
-  _impl_._has_bits_[0] &= ~0x00000008U;
+  _impl_._has_bits_[0] &= ~0x00000020U;
 }
 inline const ::std::string& Data::signature() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1036,7 +1241,7 @@ inline const ::std::string& Data::signature() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Data::set_signature(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000008U;
+  _impl_._has_bits_[0] |= 0x00000020U;
   _impl_.signature_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:network.Data.signature)
 }
@@ -1052,21 +1257,21 @@ inline const ::std::string& Data::_internal_signature() const {
 }
 inline void Data::_internal_set_signature(const ::std::string& value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000008U;
+  _impl_._has_bits_[0] |= 0x00000020U;
   _impl_.signature_.Set(value, GetArena());
 }
 inline ::std::string* PROTOBUF_NONNULL Data::_internal_mutable_signature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_._has_bits_[0] |= 0x00000008U;
+  _impl_._has_bits_[0] |= 0x00000020U;
   return _impl_.signature_.Mutable( GetArena());
 }
 inline ::std::string* PROTOBUF_NULLABLE Data::release_signature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:network.Data.signature)
-  if ((_impl_._has_bits_[0] & 0x00000008U) == 0) {
+  if ((_impl_._has_bits_[0] & 0x00000020U) == 0) {
     return nullptr;
   }
-  _impl_._has_bits_[0] &= ~0x00000008U;
+  _impl_._has_bits_[0] &= ~0x00000020U;
   auto* released = _impl_.signature_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.signature_.Set("", GetArena());
@@ -1076,9 +1281,9 @@ inline ::std::string* PROTOBUF_NULLABLE Data::release_signature() {
 inline void Data::set_allocated_signature(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000008U;
+    _impl_._has_bits_[0] |= 0x00000020U;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000008U;
+    _impl_._has_bits_[0] &= ~0x00000020U;
   }
   _impl_.signature_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.signature_.IsDefault()) {
@@ -1093,14 +1298,14 @@ inline void Data::set_allocated_signature(::std::string* PROTOBUF_NULLABLE value
 
 // .network.Data data = 1;
 inline bool Packet::has_data() const {
-  bool value = (_impl_._has_bits_[0] & 0x00000002U) != 0;
+  bool value = (_impl_._has_bits_[0] & 0x00000008U) != 0;
   PROTOBUF_ASSUME(!value || _impl_.data_ != nullptr);
   return value;
 }
 inline void Packet::clear_data() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.data_ != nullptr) _impl_.data_->Clear();
-  _impl_._has_bits_[0] &= ~0x00000002U;
+  _impl_._has_bits_[0] &= ~0x00000008U;
 }
 inline const ::network::Data& Packet::_internal_data() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -1119,16 +1324,16 @@ inline void Packet::unsafe_arena_set_allocated_data(
   }
   _impl_.data_ = reinterpret_cast<::network::Data*>(value);
   if (value != nullptr) {
-    _impl_._has_bits_[0] |= 0x00000002U;
+    _impl_._has_bits_[0] |= 0x00000008U;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000002U;
+    _impl_._has_bits_[0] &= ~0x00000008U;
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:network.Packet.data)
 }
 inline ::network::Data* PROTOBUF_NULLABLE Packet::release_data() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  _impl_._has_bits_[0] &= ~0x00000002U;
+  _impl_._has_bits_[0] &= ~0x00000008U;
   ::network::Data* released = _impl_.data_;
   _impl_.data_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -1148,7 +1353,7 @@ inline ::network::Data* PROTOBUF_NULLABLE Packet::unsafe_arena_release_data() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:network.Packet.data)
 
-  _impl_._has_bits_[0] &= ~0x00000002U;
+  _impl_._has_bits_[0] &= ~0x00000008U;
   ::network::Data* temp = _impl_.data_;
   _impl_.data_ = nullptr;
   return temp;
@@ -1163,7 +1368,7 @@ inline ::network::Data* PROTOBUF_NONNULL Packet::_internal_mutable_data() {
 }
 inline ::network::Data* PROTOBUF_NONNULL Packet::mutable_data()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  _impl_._has_bits_[0] |= 0x00000002U;
+  _impl_._has_bits_[0] |= 0x00000008U;
   ::network::Data* _msg = _internal_mutable_data();
   // @@protoc_insertion_point(field_mutable:network.Packet.data)
   return _msg;
@@ -1180,9 +1385,9 @@ inline void Packet::set_allocated_data(::network::Data* PROTOBUF_NULLABLE value)
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    _impl_._has_bits_[0] |= 0x00000002U;
+    _impl_._has_bits_[0] |= 0x00000008U;
   } else {
-    _impl_._has_bits_[0] &= ~0x00000002U;
+    _impl_._has_bits_[0] &= ~0x00000008U;
   }
 
   _impl_.data_ = reinterpret_cast<::network::Data*>(value);
@@ -1258,7 +1463,7 @@ inline void Packet::set_allocated_time(::std::string* PROTOBUF_NULLABLE value) {
 inline void Packet::clear_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.type_ = 0;
-  _impl_._has_bits_[0] &= ~0x00000004U;
+  _impl_._has_bits_[0] &= ~0x00000010U;
 }
 inline ::network::Types Packet::type() const {
   // @@protoc_insertion_point(field_get:network.Packet.type)
@@ -1266,7 +1471,7 @@ inline ::network::Types Packet::type() const {
 }
 inline void Packet::set_type(::network::Types value) {
   _internal_set_type(value);
-  _impl_._has_bits_[0] |= 0x00000004U;
+  _impl_._has_bits_[0] |= 0x00000010U;
   // @@protoc_insertion_point(field_set:network.Packet.type)
 }
 inline ::network::Types Packet::_internal_type() const {
@@ -1278,7 +1483,137 @@ inline void Packet::_internal_set_type(::network::Types value) {
   _impl_.type_ = value;
 }
 
-// repeated float values = 4;
+// string version = 4;
+inline void Packet::clear_version() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.version_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000002U;
+}
+inline const ::std::string& Packet::version() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:network.Packet.version)
+  return _internal_version();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Packet::set_version(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002U;
+  _impl_.version_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:network.Packet.version)
+}
+inline ::std::string* PROTOBUF_NONNULL Packet::mutable_version()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_version();
+  // @@protoc_insertion_point(field_mutable:network.Packet.version)
+  return _s;
+}
+inline const ::std::string& Packet::_internal_version() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.version_.Get();
+}
+inline void Packet::_internal_set_version(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002U;
+  _impl_.version_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Packet::_internal_mutable_version() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000002U;
+  return _impl_.version_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Packet::release_version() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:network.Packet.version)
+  if ((_impl_._has_bits_[0] & 0x00000002U) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000002U;
+  auto* released = _impl_.version_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.version_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Packet::set_allocated_version(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000002U;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000002U;
+  }
+  _impl_.version_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.version_.IsDefault()) {
+    _impl_.version_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:network.Packet.version)
+}
+
+// bytes payload_length = 5;
+inline void Packet::clear_payload_length() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.payload_length_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000004U;
+}
+inline const ::std::string& Packet::payload_length() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:network.Packet.payload_length)
+  return _internal_payload_length();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void Packet::set_payload_length(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000004U;
+  _impl_.payload_length_.SetBytes(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:network.Packet.payload_length)
+}
+inline ::std::string* PROTOBUF_NONNULL Packet::mutable_payload_length()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::std::string* _s = _internal_mutable_payload_length();
+  // @@protoc_insertion_point(field_mutable:network.Packet.payload_length)
+  return _s;
+}
+inline const ::std::string& Packet::_internal_payload_length() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.payload_length_.Get();
+}
+inline void Packet::_internal_set_payload_length(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000004U;
+  _impl_.payload_length_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL Packet::_internal_mutable_payload_length() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_._has_bits_[0] |= 0x00000004U;
+  return _impl_.payload_length_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE Packet::release_payload_length() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:network.Packet.payload_length)
+  if ((_impl_._has_bits_[0] & 0x00000004U) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000004U;
+  auto* released = _impl_.payload_length_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.payload_length_.Set("", GetArena());
+  }
+  return released;
+}
+inline void Packet::set_allocated_payload_length(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000004U;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000004U;
+  }
+  _impl_.payload_length_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.payload_length_.IsDefault()) {
+    _impl_.payload_length_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:network.Packet.payload_length)
+}
+
+// repeated float values = 6;
 inline int Packet::_internal_values_size() const {
   return _internal_values().size();
 }

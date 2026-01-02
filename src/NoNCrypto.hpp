@@ -52,11 +52,11 @@ public:
         ERR_load_crypto_strings();
     }
     EVP_PKEY_ptr generatekey(int nid = NID_X9_62_prime256v1);
-    void save_private_key(const EVP_PKEY *key, string &filename, string &password);
-    void save_public_key(const EVP_PKEY *key, string &filename);
+    void save_private_key(const EVP_PKEY *key, string filename, string password);
+    void save_public_key(const EVP_PKEY *key, string filename);
     vector<unsigned char> compute_shared_sector(const EVP_PKEY* private_key, const EVP_PKEY* peer_public_key);
-    EVP_PKEY_ptr load_private_key(string &filename, string &password);
-    EVP_PKEY_ptr load_public_key(string &filename);
+    EVP_PKEY_ptr load_private_key(string filename, string password);
+    EVP_PKEY_ptr load_public_key(string filename);
     vector<unsigned char> sign(const EVP_PKEY *prkey,
                                const vector<unsigned char> &data,
                                const EVP_MD *md = EVP_sha256());

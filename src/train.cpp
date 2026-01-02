@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include <cstdlib>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <openssl/ec.h>
 #include <ostream>
@@ -9,6 +10,8 @@
 #include <thread>
 #include <vector>
 #include "NoNCrypto.hpp"
+#include "NoNPacket.pb.h"
+#include "NoNProtocol.hpp"
 
 using namespace std;
 
@@ -17,65 +20,40 @@ int main(int argc, char *argv[]) {
 
   EVP_PKEY_ptr key = crypto.generatekey();
 
-  EVP_PKEY_ptr herkey = crypto.generatekey();
+  crypto.save_private_key(key.get(), "privat.pem", "Hello");
+  crypto.save_public_key(key.get(), "public.pem");
 
-  string filenam = "private.pem";
-  string file = "public.pem";
-  string passwd = "8888";
+  EVP_PKEY_ptr privkey = crypto.load_private_key("privat.pem", "Hello");
+  EVP_PKEY_ptr pubkey = crypto.load_public_key("public.pem");
 
-  string d = "hello";
-  vector<unsigned char> data(d.begin(), d.end());
+  deque<network::Packet> rec_pck;
+  short port = stoi(argv[1]);
+  boost::asio::io_context io;
+  TNonProto proto(io, port, rec_pck);
 
-  crypto.save_private_key(key.get(), filenam, passwd);
-  crypto.save_public_key(key.get(), file);
-
-  EVP_PKEY_ptr privkey = crypto.load_private_key(filenam, passwd);
-  EVP_PKEY_ptr pubkey = crypto.load_public_key(file);
-
-  Pck send = crypto.encrypt(pubkey.get(), privkey.get(), data);
-
-  vector<unsigned char> dd = crypto.decrypt(privkey.get(), send);
-
-  string daa(dd.begin(), dd.end());
-
-  cout << daa << endl;
-   
-  crypto.cleanup();
-  /*
-    short port = stoi(argv[1]);
-    boost::asio::io_context io;
-    TNonProto proto(io, port);
-
-    thread io_thread([&io, &proto] {
-      try {
-        io.run();
-      } catch (exception e){
-        cerr << e.what() << endl;
-      }
-    });
-
-    cout << "Client start" << endl;
-    string input;
-    while (true) {
-      auto data = proto.getData();
-      if (data.has_value()) {
-        cout << data->data() << endl;
-      }
-      getline(cin, input);
-      if (input == "p") {
-        string data = "Hello";
-        network::Packet spack;
-        spack.set_data(data);
-        spack.set_time("1");
-        spack.set_type(network::Types::TEXT);
-
-        proto.send_to_peer(spack, "127.0.0.1", "8002");
-      } else {
-        cout << "Its Not comand" << endl;
-        continue;
-      }
+  thread io_thread([&io, &proto] {
+    try {
+      io.run();
+    } catch (exception e){
+      cerr << e.what() << endl;
     }
+  });
 
-    io_thread.join();
-  */
+  cout << "Client start" << endl;
+  string input;
+  while (true) {
+    getline(cin, input);
+    if (input == "p") {
+      string data = "Hello lol";
+      network::Packet spack;
+      proto.send_to_peer(spack, "127.0.0.1", "8002");
+    } else {
+      cout << "Its Not comand" << endl;
+      continue;
+    }
+  }
+
+  io_thread.join();
+
+  crypto.cleanup();
 }
