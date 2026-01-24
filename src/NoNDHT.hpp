@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <cstdint>
-#include <memory>
 #include <opendht.h>
 #include <opendht/crypto.h>
 #include <opendht/infohash.h>
@@ -36,16 +35,19 @@ class FileDetector {
 
 class NonDHT {
     public:
-      void Connect();
+      NonDHT(string bootstrap_ip, string bootstrap_port, string &path_identity, uint16_t port) {
+        auto identity = GetCreatyIndentity(path_identity);
+        node.run(port, identity, true);
+        node.bootstrap(bootstrap_ip, bootstrap_port);
+      }
+      ~NonDHT(){
+        node.join();
+      }
       void SendInfo(string key, vector<uint8_t> data);
       void SendSigInfo(string uuid, vector<uint8_t> data);
-      void SendEncInfo(string key, vector<uint8_t> data, string pass);
-      vector<vector<uint8_t>> GetEncInfo(string key, string pass);
       dht::crypto::Identity GetCreatyIndentity(const string& path);
       vector<vector<uint8_t>> GetData(string key);
       vector<uint8_t> ReadFile(const string &path);
-      string Generator(string id, bool isgenerate);
-      void Close();
 
     private:
       uint16_t port = 8989;

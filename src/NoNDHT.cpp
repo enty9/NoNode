@@ -1,7 +1,6 @@
 #include "NoNDHT.hpp"
 #include <cstddef>
 #include <cstdint>
-#include <exception>
 #include <filesystem>
 #include <future>
 #include <ios>
@@ -20,13 +19,6 @@
 
 using namespace std;
 
-void NonDHT::Connect() {
-    auto identity = GetCreatyIndentity("Identity.bin");
-    node.run(port, identity, true);
-    node.bootstrap(bootstrap_ip, bootstrap_port);
-
-    cout << "Connected" << endl;
-}
 void NonDHT::SendInfo(string key, vector<uint8_t> data) {
     node.put(key, data);
 }
@@ -50,9 +42,7 @@ vector<vector<uint8_t>> NonDHT::GetData(string key) {
   auto results = future.get();
   return results;
 }
-string NonDHT::Generator(string id, bool isgenerate) {
-  
-}
+
 dht::crypto::Identity NonDHT::GetCreatyIndentity(const string& path){
   if (filesystem::exists(path)) {
     auto identity = dht::crypto::loadIdentity(path);
@@ -62,31 +52,6 @@ dht::crypto::Identity NonDHT::GetCreatyIndentity(const string& path){
     dht::crypto::saveIdentity(identity, path);
     return identity;
   }
-}
-void NonDHT::SendEncInfo(string key, vector<uint8_t> data, string pass) {
-  auto encrypt = dht::crypto::aesEncrypt(data, dht::InfoHash::get(pass).toString());
-  vector<uint8_t> d(encrypt.begin(), encrypt.end());
-  node.put(key, d);
-  cout << "Data send"<< endl;
-}
-vector<vector<uint8_t>> NonDHT::GetEncInfo(string key, string pass) {
-  promise<vector<vector<uint8_t>>> promise;
-  auto future = promise.get_future();
-
-  node.get(key, [&promise, pass](const vector<shared_ptr<dht::Value>> &values) {
-    vector<vector<uint8_t>> all;
-    try{
-      for (auto &vp : values) {
-        all.push_back(dht::crypto::aesDecrypt(vp->data, dht::InfoHash::get(pass).toString()));
-      }
-      promise.set_value(all);
-    } catch (const exception &e) {
-      cerr << "Error:" << e.what() << endl;
-    };
-    return false;
-  });
-  auto result = future.get();
-  return result;
 }
 vector<uint8_t> NonDHT::ReadFile(const string &path) {
   ifstream file(path, ios::binary);
@@ -98,11 +63,6 @@ vector<uint8_t> NonDHT::ReadFile(const string &path) {
   file.read(reinterpret_cast<char *>(buffer.data()), size);
   return buffer;
 }
-void NonDHT::Close() {
-  cout << "Close connection" << endl;
-  node.join();
-}
-
 
 string FileDetector::detect(const vector<uint8_t> &data) {
   if (data.empty())
