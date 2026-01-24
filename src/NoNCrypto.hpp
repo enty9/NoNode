@@ -47,10 +47,15 @@ struct Pck {
 
 class TNonCrypto {
 public:
-   TNonCrypto() {
-        OpenSSL_add_all_algorithms();
-        ERR_load_crypto_strings();
+    TNonCrypto() {
+          OpenSSL_add_all_algorithms();
+          ERR_load_crypto_strings();
     }
+    ~TNonCrypto() {
+      EVP_cleanup();
+      ERR_free_strings();
+    }
+   
     EVP_PKEY_ptr generatekey(int nid = NID_X9_62_prime256v1);
     void save_private_key(const EVP_PKEY *key, string filename, string password);
     void save_public_key(const EVP_PKEY *key, string filename);
@@ -65,14 +70,10 @@ public:
                 const EVP_MD *md = EVP_sha256());
     vector<unsigned char> serialize_key(const EVP_PKEY *key);
     EVP_PKEY_ptr deserialize_key(vector<unsigned char> *serialized);
-    void cleanup() {
-      EVP_cleanup();
-      ERR_free_strings();
-    }
     Pck encrypt(const EVP_PKEY *recipient_pubk,
-                            const EVP_PKEY *prkey, vector<unsigned char> &data,
-                            int nid = NID_X9_62_prime256v1,
-                            network::Types type = network::Types::UNSPECIFIED);
+                const EVP_PKEY *prkey, vector<unsigned char> &data,
+                int nid = NID_X9_62_prime256v1,
+                network::Types type = network::Types::UNSPECIFIED);
     
     vector<unsigned char> decrypt(const EVP_PKEY *recipient_privk,
                                   const Pck &pack);
@@ -92,18 +93,18 @@ public:
 
       return byte;
     }
+    vector<unsigned char> get_pubk(const EVP_PKEY *pkey) {
+      size_t pub_len = 0;
+      EVP_PKEY_get_raw_public_key(pkey, NULL, &pub_len);
+
+      vector<unsigned char> pub_key(pub_len);
+      EVP_PKEY_get_raw_public_key(pkey, pub_key.data(), &pub_len);
+
+      return pub_key;
+    }
 
 private:
-
-  vector<unsigned char> get_pubk(const EVP_PKEY *pkey) {
-    size_t pub_len = 0;
-    EVP_PKEY_get_raw_public_key(pkey, NULL, &pub_len);
-
-    vector<unsigned char> pub_key(pub_len);
-    EVP_PKEY_get_raw_public_key(pkey, pub_key.data(), &pub_len);
-
-    return pub_key;
-  }
+    atomic<int> counter{0};
 };
 
 

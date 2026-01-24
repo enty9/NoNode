@@ -13,7 +13,7 @@
 using namespace std;
 
 struct Filesignature {
-  vector<uint8_t> magic;
+  vector<unsigned char> magic;
   string extension;
   string mime_type;
 };
@@ -25,9 +25,9 @@ class FileDetector {
       signatures["JPEG"] = {{0xFF, 0xD8, 0xFF}, "jpg", "image/jpeg"};
       signatures["GIF"] = {{0x47, 0x49, 0x46, 0x38}, "gif", "image/gif"};
     };
-    string detect(const vector<uint8_t> &data);
-    bool isfile(const vector<uint8_t> &data);
-    void saveFile(const string &path, const vector<uint8_t> &data);
+    string detect(const vector<unsigned char> &data);
+    bool isfile(const vector<unsigned char> &data);
+    void saveFile(const string &path, const vector<unsigned char> &data);
 
   private:
     std::map<std::string, Filesignature> signatures;
@@ -43,11 +43,11 @@ class NonDHT {
       ~NonDHT(){
         node.join();
       }
-      void SendInfo(string key, vector<uint8_t> data);
-      void SendSigInfo(string uuid, vector<uint8_t> data);
+      void SendInfo(string key, vector<unsigned char> data);
+      void SendSigInfo(string uuid, vector<unsigned char> data);
       dht::crypto::Identity GetCreatyIndentity(const string& path);
-      vector<vector<uint8_t>> GetData(string key);
-      vector<uint8_t> ReadFile(const string &path);
+      vector<vector<unsigned char>> GetData(string key);
+      vector<unsigned char> ReadFile(const string &path);
 
     private:
       uint16_t port = 8989;

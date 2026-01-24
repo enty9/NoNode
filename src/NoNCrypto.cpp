@@ -27,9 +27,7 @@
 
 using namespace std;
 
-// Надо затестить и если че перделать
 
-// Is work
 EVP_PKEY_ptr TNonCrypto::generatekey(int nid) {
   try{
     EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL));
@@ -45,13 +43,13 @@ EVP_PKEY_ptr TNonCrypto::generatekey(int nid) {
     return EVP_PKEY_ptr(nullptr);
   }
 }
-// Is work
+
 void TNonCrypto::save_private_key(const EVP_PKEY *key, string filename, string password) {
   if (key == nullptr) throw runtime_error("Failed create file because dont have a key");
   BIO_ptr bio(BIO_new_file(filename.c_str(), "w"));
 
   if (password.empty()) {
-    cout << "Xuy tebe a ne privat key" << endl;
+    throw runtime_error("Please write password bitch");
   } else {
     PEM_write_bio_PrivateKey(bio.get(), const_cast<EVP_PKEY *>(key),
                              EVP_aes_256_cbc(),
@@ -59,14 +57,14 @@ void TNonCrypto::save_private_key(const EVP_PKEY *key, string filename, string p
                              password.length(), nullptr, nullptr);
   }
 }
-// Is work
+
 void TNonCrypto::save_public_key(const EVP_PKEY *key, string filename) {
   if (key == nullptr) throw runtime_error("Failed create file because dont have a key");
   BIO_ptr bio(BIO_new_file(filename.c_str(), "w"));
 
   PEM_write_bio_PUBKEY(bio.get(), const_cast<EVP_PKEY *>(key));
 }
-// Is work
+
 EVP_PKEY_ptr TNonCrypto::load_private_key(string filename, string password) {
   try{
     BIO_ptr bio(BIO_new_file(filename.c_str(), "r"));
@@ -78,7 +76,7 @@ EVP_PKEY_ptr TNonCrypto::load_private_key(string filename, string password) {
     return EVP_PKEY_ptr(nullptr);
   }
 }
-// Is work
+
 EVP_PKEY_ptr TNonCrypto::load_public_key(string filename) {
   try {
     BIO_ptr bio(BIO_new_file(filename.c_str(), "r"));
@@ -91,7 +89,7 @@ EVP_PKEY_ptr TNonCrypto::load_public_key(string filename) {
   }
 }
 
-// Is work
+
 vector<unsigned char> TNonCrypto::sign(const EVP_PKEY *prkey,
                            const vector<unsigned char> &data,
                            const EVP_MD *md) {
@@ -108,7 +106,7 @@ vector<unsigned char> TNonCrypto::sign(const EVP_PKEY *prkey,
   signature.resize(sig_len);
   return signature;
 }
-// Is work
+
 bool TNonCrypto::verify(const EVP_PKEY *pukey, vector<unsigned char> &data,
                         vector<unsigned char> &signature, const EVP_MD *md) {
   EVP_MD_CTX_ptr ctx(EVP_MD_CTX_new());
@@ -137,7 +135,7 @@ vector<unsigned char> TNonCrypto::compute_shared_sector(const EVP_PKEY *private_
 
   return shared_secret;
 }
-// Is work
+
 vector<unsigned char> TNonCrypto::serialize_key(const EVP_PKEY *key) {
   BIO_ptr bio(BIO_new(BIO_s_mem()));
   i2d_PUBKEY_bio(bio.get(), const_cast<EVP_PKEY *>(key));
@@ -155,11 +153,11 @@ EVP_PKEY_ptr TNonCrypto::deserialize_key(vector<unsigned char>* serialized){
 
   return EVP_PKEY_ptr(key);
 }
-// Is work
+
 Pck TNonCrypto::encrypt(const EVP_PKEY *recipient_pubk,
-                                    const EVP_PKEY *prkey,
-                                    vector<unsigned char> &data, int nid,
-                                    network::Types type) {
+                        const EVP_PKEY *prkey,
+                        vector<unsigned char> &data, int nid,
+                        network::Types type) {
 
   // Generate Ephemeral Key
   EVP_PKEY_CTX_ptr ctx(EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL));
@@ -217,7 +215,7 @@ recipient_pubk);
 
   return pack;
 }
-//work
+
 vector<unsigned char> TNonCrypto::decrypt(const EVP_PKEY *recipient_privk,
                               const Pck &pack) {
   vector<unsigned char> shared_key = compute_shared_sector(recipient_privk, pack.eph_key.get());
@@ -255,7 +253,7 @@ vector<unsigned char> TNonCrypto::decrypt(const EVP_PKEY *recipient_privk,
   return data;
 }
 
-// +- work
+
 vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &shared_key,
                         size_t output_length, const vector<unsigned char> &salt,
                         const vector<unsigned char> &info,
@@ -275,7 +273,7 @@ vector<unsigned char> TNonCrypto::hkdf_derive(const vector<unsigned char> &share
 
   return output_key;
 }
-// Is work
+
 string TNonCrypto::hash_password(const string &pswd, vector<unsigned char> salt) {
   const uint32_t t_cost = 3;
   const uint32_t m_cost = 1 << 16;

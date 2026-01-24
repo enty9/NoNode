@@ -19,18 +19,18 @@
 
 using namespace std;
 
-void NonDHT::SendInfo(string key, vector<uint8_t> data) {
+void NonDHT::SendInfo(string key, vector<unsigned char> data) {
     node.put(key, data);
 }
-void NonDHT::SendSigInfo(string uuid, vector<uint8_t> data) {
+void NonDHT::SendSigInfo(string uuid, vector<unsigned char> data) {
     node.putSigned(uuid, data);
 }
 vector<vector<uint8_t>> NonDHT::GetData(string key) {
-    promise<vector<vector<uint8_t>>> promise;
+    promise<vector<vector<unsigned char>>> promise;
     auto future = promise.get_future();
 
     node.get(key, [&promise](const vector<shared_ptr<dht::Value>> &values) {
-        vector<vector<uint8_t>> all;
+        vector<vector<unsigned char>> all;
         for (auto &vp : values) {
           all.push_back(vp->data);
         }
@@ -53,18 +53,18 @@ dht::crypto::Identity NonDHT::GetCreatyIndentity(const string& path){
     return identity;
   }
 }
-vector<uint8_t> NonDHT::ReadFile(const string &path) {
+vector<unsigned char> NonDHT::ReadFile(const string &path) {
   ifstream file(path, ios::binary);
   if (!file) throw runtime_error("Dont open file:" + path);
   file.seekg(0, ios::end);
   size_t size = file.tellg();
   file.seekg(0, ios::beg);
-  vector<uint8_t> buffer(size);
+  vector<unsigned char> buffer(size);
   file.read(reinterpret_cast<char *>(buffer.data()), size);
   return buffer;
 }
 
-string FileDetector::detect(const vector<uint8_t> &data) {
+string FileDetector::detect(const vector<unsigned char> &data) {
   if (data.empty())
     return "unknown";
 
@@ -84,10 +84,10 @@ string FileDetector::detect(const vector<uint8_t> &data) {
 
   return "unknown";
 }
-bool FileDetector::isfile(const vector<uint8_t> &data) {
+bool FileDetector::isfile(const vector<unsigned char> &data) {
   return detect(data) != "unknown";
 }
-void FileDetector::saveFile(const string &path, const vector<uint8_t> &data) {
+void FileDetector::saveFile(const string &path, const vector<unsigned char> &data) {
   ofstream file(path, ios::binary);
   file.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
