@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
   EVP_PKEY_ptr privkey = crypto.load_private_key("privat.pem", "Hello");
   EVP_PKEY_ptr pubkey = crypto.load_public_key("public.pem");
 
-  deque<network::Packet> rec_pck;
+  PacketQueue rec_pck;
   short port = stoi(argv[1]);
   boost::asio::io_context io;
   TNonProto proto(io, port, rec_pck);
@@ -54,6 +54,4 @@ int main(int argc, char *argv[]) {
   }
 
   io_thread.join();
-
-  crypto.cleanup();
 }

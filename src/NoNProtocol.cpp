@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <exception>
 #include <fstream>
 #include <google/protobuf/message.h>
 #include <memory>
@@ -13,10 +12,8 @@
 #include <netinet/in.h>
 #include <openssl/aes.h>
 #include <iostream>
-#include <optional>
 #include <vector>
 #include <string>
-#include <opendht.h>
 #include <cstdio>
 #include "NoNProtocol.hpp"
 #include "NoNPacket.pb.h"
@@ -32,18 +29,21 @@ boost::asio::io_context io;
 void TNonProto::add_pear(string &host, string &port) {
   udp::resolver res(io);
   auto end = res.resolve(udp::v4(), host, port);
+
+  lock_guard<mutex> lock(peers_mutex);
   for (const auto &e : end) {
     peers.push_back(e);
   }
 }
 
-void TNonProto::send_to_all(network::Packet meesage) {
+void TNonProto::send_to_all(network::Packet &meesage) {
+  lock_guard<mutex> lock(peers_mutex);
   for (const auto &peer : peers) {
     send_message(meesage, peer);
   }
 }
 
-void TNonProto::send_to_peer(network::Packet meesage, string host, string port) {
+void TNonProto::send_to_peer(network::Packet &meesage, string host, string port) {
   udp::resolver resolver(io);
   auto end = resolver.resolve(udp::v4(), host, port);
   for (const auto &e : end) {
@@ -51,55 +51,58 @@ void TNonProto::send_to_peer(network::Packet meesage, string host, string port) 
   }
 }
 
-vector<string> TNonProto::list_peers() {
-  string data;
-  vector<string> datas;
-  for (size_t i = 0; i < peers.size(); ++i) {
-    data = peers[i].address().to_string() + ":" + to_string(peers[i].port());
-    datas.push_back(data);
+vector<string> TNonProto::list_peers() const{
+  lock_guard<mutex> lock(peers_mutex);
+  vector<string> result;
+  result.reserve(peers.size());
+
+  for (const auto &peer : peers) {
+    result.push_back(peer.address().to_string() + ":" + to_string(peer.port()));
   }
 
-  return datas;
+  return result;
 }
 
-void TNonProto::start_receive(deque<network::Packet> &packet) {
+void TNonProto::start_receive() {
+  if(!is_running) return;
+
   sock.async_receive_from(
       boost::asio::buffer(buffer),
       remot_end,
-      [this, &packet](boost::system::error_code ec, size_t bytes){
+      [this](boost::system::error_code ec, size_t bytes){
         if(!ec && bytes > 0 && is_running){
           network::Packet pack;
           vector<char> data(buffer.data(), buffer.data() + bytes);
           if (TPacketSerializer::deserialize(data, pack)) {
-            packet.push_back(pack);
-          }
-          if (!has_peer(remot_end)) {
-            peers.push_back(remot_end);
+            m_packetQueue.push(pack);
+            if (!has_peer(remot_end)) {
+              lock_guard<mutex> lock(peers_mutex);
+              peers.push_back(remot_end);
+            }
           }
         }
         if (is_running) {
-          start_receive(packet);
+          start_receive();
         }
       }
   );
 }
 
-void TNonProto::send_message(network::Packet message, udp::endpoint end) {
+void TNonProto::send_message(network::Packet &message, udp::endpoint end) {
   auto buf = make_shared<vector<char>>(TPacketSerializer::serialize(message));
   sock.async_send_to(
       boost::asio::buffer(*buf),
       end,
       [this, message, end](boost::system::error_code ec, size_t){
-        if (!ec) {
-          cout << "Sended" << endl;
-        } else {
+        if (ec){
           cerr << "Send Error" << ec.message() << endl;
         }
       }
   );
 }
 
-bool TNonProto::has_peer(udp::endpoint end) {
+bool TNonProto::has_peer(udp::endpoint end) const {
+  lock_guard<mutex> lock(peers_mutex);
   for (const auto &peer : peers) {
     if (peer.address() == end.address() && peer.port() == end.port()) {
       return true;
